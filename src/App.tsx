@@ -293,13 +293,6 @@ export function App() {
     });
   };
 
-  const handleResetData = () => {
-    if (confirm('Reset tasks and categories back to the original default dataset?')) {
-      setTasks(INITIAL_TASKS);
-      setCategoriesList(DEFAULT_CATEGORIES);
-    }
-  };
-
   const handleImportTasks = (newTasks: TodoTask[]) => {
     setTasks(newTasks);
   };
@@ -318,7 +311,6 @@ export function App() {
           setIsAddModalOpen(true);
         }}
         onOpenExportModal={() => setIsExportModalOpen(true)}
-        onResetData={handleResetData}
         taskCount={tasks.length}
         theme={theme}
         onToggleTheme={toggleTheme}
