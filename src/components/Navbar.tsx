@@ -1,5 +1,5 @@
 import React from 'react';
-import { Plus, Terminal, LayoutList, Download, CheckCircle2, Cloud } from 'lucide-react';
+import { Plus, Terminal, LayoutList, Download, CheckCircle2 } from 'lucide-react';
 import { ThemeMode } from '../types/theme';
 import { THEME_CONFIGS } from '../utils/themeConfig';
 import { ThemeSelector } from './ThemeSelector';
@@ -9,8 +9,6 @@ interface NavbarProps {
   setViewMode: (mode: 'table' | 'terminal') => void;
   onOpenAddModal: () => void;
   onOpenExportModal: () => void;
-  onOpenSyncModal: () => void;
-  syncKey: string | null;
   taskCount: number;
   theme: ThemeMode;
   onSelectTheme: (theme: ThemeMode) => void;
@@ -21,8 +19,6 @@ export const Navbar: React.FC<NavbarProps> = ({
   setViewMode,
   onOpenAddModal,
   onOpenExportModal,
-  onOpenSyncModal,
-  syncKey,
   taskCount,
   theme,
   onSelectTheme,
@@ -60,22 +56,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
 
         {/* Action Controls */}
-        <div className="flex items-center gap-1.5 sm:gap-2.5">
-          {/* Cloud Sync Button */}
-          <button
-            onClick={onOpenSyncModal}
-            className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all duration-200 hover:scale-105 active:scale-95 ${
-              syncKey
-                ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-400'
-                : `${themeConfig.classes.badgeBg} ${themeConfig.classes.cardBorder} ${themeConfig.classes.textSecondary}`
-            }`}
-            title="Cross-Device Sync (Phone & Laptop)"
-          >
-            <Cloud className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">{syncKey ? 'Synced' : 'Sync'}</span>
-            {syncKey && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />}
-          </button>
-
+        <div className="flex items-center gap-2 sm:gap-3">
           {/* View Switcher on Desktop */}
           <div className={`hidden md:flex items-center p-0.5 rounded-xl border ${isWhite ? 'bg-black/[0.04] border-black/[0.05]' : 'bg-white/[0.06] border-white/[0.08]'}`}>
             <button
@@ -116,7 +97,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Export / Backup on Desktop */}
           <button
             onClick={onOpenExportModal}
-            className={`hidden lg:flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-xl border transition-all hover:scale-105 active:scale-95 ${
+            className={`hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-xl border transition-all hover:scale-105 active:scale-95 ${
               isWhite
                 ? 'bg-white hover:bg-slate-50 text-slate-700 border-black/[0.06]'
                 : 'bg-white/[0.06] hover:bg-white/[0.12] text-white/80 border-white/[0.08]'
@@ -129,7 +110,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* New Task Button */}
           <button
             onClick={onOpenAddModal}
-            className={`flex items-center gap-1 sm:gap-1.5 px-3 sm:px-4 py-1.5 text-xs font-semibold rounded-xl transition-all duration-200 hover:scale-105 active:scale-95 ${themeConfig.classes.accentBtn}`}
+            className={`flex items-center gap-1 sm:gap-1.5 px-3.5 sm:px-4 py-1.5 text-xs font-semibold rounded-xl transition-all duration-200 hover:scale-105 active:scale-95 ${themeConfig.classes.accentBtn}`}
           >
             <Plus className="w-4 h-4 stroke-[2.5]" />
             <span>New Task</span>
