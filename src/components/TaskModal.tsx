@@ -41,6 +41,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
   const [showAddCatInput, setShowAddCatInput] = useState(false);
 
   const themeConfig = THEME_CONFIGS[theme];
+  const isWhite = theme === 'white';
 
   useEffect(() => {
     if (initialData) {
@@ -226,20 +227,35 @@ export const TaskModal: React.FC<TaskModalProps> = ({
             </div>
           </div>
 
-          {/* Status */}
+          {/* STATUS: Clean iOS Segmented Control matching active theme */}
           <div>
             <label className={`block font-semibold uppercase tracking-wider mb-1.5 ${themeConfig.classes.textMuted}`}>
               Status
             </label>
-            <select
-              value={status}
-              onChange={(e) => setStatus(e.target.value as TaskStatus)}
-              className={`w-full px-3 py-2.5 border rounded-xl text-xs focus:outline-none ${themeConfig.classes.inputBg} ${themeConfig.classes.inputBorder} ${themeConfig.classes.textPrimary}`}
-            >
-              <option value="todo">To Do (Pending)</option>
-              <option value="in-progress">In Progress</option>
-              <option value="completed">Completed</option>
-            </select>
+            <div className={`grid grid-cols-3 gap-1.5 p-1 rounded-2xl border ${isWhite ? 'bg-black/[0.04] border-black/[0.06]' : 'bg-black/30 border-white/[0.08]'}`}>
+              {(['todo', 'in-progress', 'completed'] as const).map((st) => {
+                const isSelected = status === st;
+                return (
+                  <button
+                    key={st}
+                    type="button"
+                    onClick={() => setStatus(st)}
+                    className={`py-2 px-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all duration-200 ${
+                      isSelected
+                        ? isWhite
+                          ? 'bg-white text-slate-900 shadow-sm font-bold border border-black/10'
+                          : 'text-white font-bold shadow-md'
+                        : `${themeConfig.classes.textMuted} hover:${themeConfig.classes.textPrimary}`
+                    }`}
+                    style={isSelected && !isWhite ? { backgroundColor: themeConfig.accentHex } : {}}
+                  >
+                    <span>
+                      {st === 'todo' ? '○ To Do' : st === 'in-progress' ? '● Active' : '✓ Done'}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           {/* CATEGORY SECTION */}
