@@ -2,6 +2,7 @@ import { TodoTask } from '../types/todo';
 
 export interface CloudPayload {
   syncKey: string;
+  senderId: string;
   updatedAt: string;
   tasks: TodoTask[];
   categories: string[];
@@ -12,8 +13,9 @@ export interface SupabaseConfig {
   anonKey: string;
 }
 
-const CLOUD_SYNC_KEY_STORAGE = 'priority_todo_sync_key_v2';
+const CLOUD_SYNC_KEY_STORAGE = 'priority_todo_sync_key_v3';
 const SUPABASE_CONFIG_STORAGE = 'priority_todo_supabase_config_v1';
+export const CLIENT_SESSION_ID = `client_${Math.random().toString(36).substring(2, 9)}_${Date.now()}`;
 
 export function getStoredSyncKey(): string | null {
   try {
@@ -67,7 +69,7 @@ export function generateSyncKey(): string {
 }
 
 /**
- * Push tasks to cloud database (Supports Free Public Cloud Bin + Supabase)
+ * Publish tasks to real-time cloud relay
  */
 export async function pushTasksToCloud(
   syncKey: string,
@@ -80,15 +82,31 @@ export async function pushTasksToCloud(
 
   const payload: CloudPayload = {
     syncKey: cleanKey,
+    senderId: CLIENT_SESSION_ID,
     updatedAt: new Date().toISOString(),
     tasks,
     categories,
   };
 
-  // If user configured their private Supabase PostgreSQL
+  const sanitizedKey = cleanKey.replace(/[^a-z0-9_-]/g, '');
+
+  // 1. Publish to Real-time PubSub Relay (Immediate delivery to Incognito, Phone & Laptop)
+  try {
+    await fetch(`https://ntfy.sh/priority_todo_room_${sanitizedKey}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+  } catch (err) {
+    console.warn('Real-time pubsub warning:', err);
+  }
+
+  // 2. If user configured private Supabase
   if (supabaseConfig?.url && supabaseConfig?.anonKey) {
     try {
-      const res = await fetch(`${supabaseConfig.url.replace(/\/$/, '')}/rest/v1/user_todos`, {
+      await fetch(`${supabaseConfig.url.replace(/\/$/, '')}/rest/v1/user_todos`, {
         method: 'POST',
         headers: {
           'apikey': supabaseConfig.anonKey,
@@ -102,31 +120,16 @@ export async function pushTasksToCloud(
           updated_at: new Date().toISOString(),
         }),
       });
-      if (res.ok) return true;
     } catch (e) {
-      console.warn('Supabase push error, falling back to cloud bin:', e);
+      console.warn('Supabase push error:', e);
     }
   }
 
-  // Primary Free Global Cloud Storage API
-  const sanitizedKey = cleanKey.replace(/[^a-z0-9_-]/g, '');
-  try {
-    const response = await fetch(`https://kvdb.io/8j3f5p7K9xQ2Z1W/todo_room_${sanitizedKey}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
-    });
-    return response.ok;
-  } catch (err) {
-    console.warn('Cloud sync error (local storage preserved):', err);
-    return false;
-  }
+  return true;
 }
 
 /**
- * Pull tasks from cloud database
+ * Pull latest tasks from real-time cloud relay
  */
 export async function pullTasksFromCloud(
   syncKey: string,
@@ -135,7 +138,38 @@ export async function pullTasksFromCloud(
   const cleanKey = syncKey.trim().toLowerCase();
   if (!cleanKey) return null;
 
-  // If user configured Supabase
+  const sanitizedKey = cleanKey.replace(/[^a-z0-9_-]/g, '');
+
+  // 1. Try pulling latest cached message from real-time relay
+  try {
+    const response = await fetch(`https://ntfy.sh/priority_todo_room_${sanitizedKey}/json?poll=1`, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+      },
+    });
+
+    if (response.ok) {
+      const text = await response.text();
+      // ntfy returns line-delimited JSON messages, take the last one
+      const lines = text.trim().split('\n').filter(Boolean);
+      for (let i = lines.length - 1; i >= 0; i--) {
+        try {
+          const item = JSON.parse(lines[i]);
+          if (item.message) {
+            const parsed = typeof item.message === 'string' ? JSON.parse(item.message) : item.message;
+            if (parsed && Array.isArray(parsed.tasks)) {
+              return parsed as CloudPayload;
+            }
+          }
+        } catch (e) {}
+      }
+    }
+  } catch (err) {
+    console.warn('Real-time poll warning:', err);
+  }
+
+  // 2. Try Supabase if configured
   if (supabaseConfig?.url && supabaseConfig?.anonKey) {
     try {
       const res = await fetch(
@@ -155,31 +189,10 @@ export async function pullTasksFromCloud(
           return rows[0].data as CloudPayload;
         }
       }
-    } catch (e) {
-      console.warn('Supabase pull error, falling back to cloud bin:', e);
-    }
+    } catch (e) {}
   }
 
-  // Primary Free Global Cloud Storage API
-  const sanitizedKey = cleanKey.replace(/[^a-z0-9_-]/g, '');
-  try {
-    const response = await fetch(`https://kvdb.io/8j3f5p7K9xQ2Z1W/todo_room_${sanitizedKey}`, {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-      },
-    });
-
-    if (!response.ok) return null;
-    const data = await response.json();
-    if (data && Array.isArray(data.tasks)) {
-      return data as CloudPayload;
-    }
-    return null;
-  } catch (err) {
-    console.warn('Cloud sync pull warning:', err);
-    return null;
-  }
+  return null;
 }
 
 export function getSyncShareUrl(syncKey: string): string {

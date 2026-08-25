@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import confetti from 'canvas-confetti';
-import { Plus } from 'lucide-react';
+import { Plus, Cloud, Link2, Sparkles } from 'lucide-react';
 import { Navbar } from './components/Navbar';
 import { StatsBanner } from './components/StatsBanner';
 import { FilterBar } from './components/FilterBar';
@@ -21,6 +21,7 @@ import {
   getStoredSupabaseConfig,
   saveStoredSupabaseConfig,
   SupabaseConfig,
+  CLIENT_SESSION_ID,
 } from './utils/cloudSync';
 
 const STORAGE_KEY = 'priority_todo_tasks_v1';
@@ -126,6 +127,7 @@ export function App() {
 
   const themeConfig = THEME_CONFIGS[theme];
   const broadcastChannelRef = useRef<BroadcastChannel | null>(null);
+  const isInternalUpdateRef = useRef(false);
 
   // Apply theme to document element
   useEffect(() => {
@@ -141,7 +143,7 @@ export function App() {
     }
   }, [theme]);
 
-  // 1. Real-Time Cross-Tab Synchronization via BroadcastChannel & Storage Event
+  // 1. Cross-Tab Sync via BroadcastChannel & Storage Event
   useEffect(() => {
     let bc: BroadcastChannel | null = null;
     try {
@@ -149,27 +151,25 @@ export function App() {
       broadcastChannelRef.current = bc;
       bc.onmessage = (event) => {
         if (event.data?.type === 'TASKS_UPDATED' && Array.isArray(event.data.tasks)) {
+          isInternalUpdateRef.current = true;
           setTasks(event.data.tasks);
           if (event.data.categories && Array.isArray(event.data.categories)) {
             setCategoriesList(event.data.categories);
           }
+          setTimeout(() => { isInternalUpdateRef.current = false; }, 200);
         }
       };
-    } catch (e) {
-      console.warn('BroadcastChannel not supported, using storage events');
-    }
+    } catch (e) {}
 
     const handleStorageEvent = (e: StorageEvent) => {
       if (e.key === STORAGE_KEY && e.newValue) {
         try {
           const parsed = JSON.parse(e.newValue);
-          if (Array.isArray(parsed)) setTasks(parsed);
-        } catch (err) {}
-      }
-      if (e.key === CATEGORIES_STORAGE_KEY && e.newValue) {
-        try {
-          const parsed = JSON.parse(e.newValue);
-          if (Array.isArray(parsed)) setCategoriesList(parsed);
+          if (Array.isArray(parsed)) {
+            isInternalUpdateRef.current = true;
+            setTasks(parsed);
+            setTimeout(() => { isInternalUpdateRef.current = false; }, 200);
+          }
         } catch (err) {}
       }
     };
@@ -182,12 +182,49 @@ export function App() {
     };
   }, []);
 
-  // 2. Save tasks to localStorage & Broadcast to all other tabs & Auto-sync to Cloud
+  // 2. Real-Time Cloud Server-Sent Events (SSE) Listener for Incognito, Mobile & Remote Windows
+  useEffect(() => {
+    if (!syncKey) return;
+    const sanitizedKey = syncKey.replace(/[^a-z0-9_-]/g, '');
+    let eventSource: EventSource | null = null;
+
+    try {
+      eventSource = new EventSource(`https://ntfy.sh/priority_todo_room_${sanitizedKey}/sse`);
+
+      eventSource.onmessage = (event) => {
+        try {
+          const raw = JSON.parse(event.data);
+          if (raw && raw.message) {
+            const payload = typeof raw.message === 'string' ? JSON.parse(raw.message) : raw.message;
+            if (payload && Array.isArray(payload.tasks) && payload.senderId !== CLIENT_SESSION_ID) {
+              isInternalUpdateRef.current = true;
+              setTasks(payload.tasks);
+              if (payload.categories && Array.isArray(payload.categories)) {
+                setCategoriesList(payload.categories);
+              }
+              const now = new Date().toISOString();
+              setLastSyncedAt(now);
+              localStorage.setItem(LAST_SYNCED_STORAGE_KEY, now);
+              setTimeout(() => { isInternalUpdateRef.current = false; }, 200);
+            }
+          }
+        } catch (err) {}
+      };
+    } catch (e) {
+      console.warn('SSE connection error:', e);
+    }
+
+    return () => {
+      if (eventSource) eventSource.close();
+    };
+  }, [syncKey]);
+
+  // 3. Save tasks to localStorage & Broadcast to tabs & Real-Time Push to Cloud
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
-      // Broadcast to other open tabs on this device
-      if (broadcastChannelRef.current) {
+
+      if (broadcastChannelRef.current && !isInternalUpdateRef.current) {
         broadcastChannelRef.current.postMessage({
           type: 'TASKS_UPDATED',
           tasks,
@@ -195,8 +232,8 @@ export function App() {
         });
       }
 
-      // If connected to a Cloud Sync Key or Supabase, push immediately
-      if (syncKey) {
+      // If active syncKey, push to cloud relay
+      if (syncKey && !isInternalUpdateRef.current) {
         pushTasksToCloud(syncKey, tasks, categoriesList, supabaseConfig).then((success) => {
           if (success) {
             const now = new Date().toISOString();
@@ -219,13 +256,14 @@ export function App() {
     }
   }, [categoriesList]);
 
-  // 3. Background Cloud Pull & Polling Engine
+  // 4. Cloud Pull & Sync Now Trigger
   const handleSyncNow = useCallback(async () => {
     if (!syncKey) return;
     setIsSyncing(true);
     try {
       const cloudData = await pullTasksFromCloud(syncKey, supabaseConfig);
       if (cloudData && Array.isArray(cloudData.tasks) && cloudData.tasks.length > 0) {
+        isInternalUpdateRef.current = true;
         setTasks(cloudData.tasks);
         if (cloudData.categories && cloudData.categories.length > 0) {
           setCategoriesList(cloudData.categories);
@@ -233,8 +271,8 @@ export function App() {
         const now = new Date().toISOString();
         setLastSyncedAt(now);
         localStorage.setItem(LAST_SYNCED_STORAGE_KEY, now);
+        setTimeout(() => { isInternalUpdateRef.current = false; }, 200);
       } else {
-        // If empty cloud room, push our existing tasks up to cloud database
         await pushTasksToCloud(syncKey, tasks, categoriesList, supabaseConfig);
         const now = new Date().toISOString();
         setLastSyncedAt(now);
@@ -245,14 +283,10 @@ export function App() {
     }
   }, [syncKey, tasks, categoriesList, supabaseConfig]);
 
-  // Polling every 15s when active syncKey is set
+  // Initial pull when syncKey changes
   useEffect(() => {
     if (syncKey) {
       handleSyncNow();
-      const interval = setInterval(() => {
-        handleSyncNow();
-      }, 15000);
-      return () => clearInterval(interval);
     }
   }, [syncKey]);
 
@@ -267,7 +301,7 @@ export function App() {
     setSupabaseConfig(config);
   };
 
-  // Combine categories list with any unique task categories
+  // Combine categories
   const categories = useMemo(() => {
     const set = new Set<string>(categoriesList);
     tasks.forEach(t => {
@@ -462,6 +496,24 @@ export function App() {
       />
 
       <main className="flex-1 max-w-6xl w-full mx-auto px-3.5 sm:px-6 lg:px-8 py-5 sm:py-7 space-y-4 sm:space-y-5">
+        {/* Notice for Incognito / Unconnected Mode */}
+        {!syncKey && (
+          <div className="p-3 sm:p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between gap-3 text-xs">
+            <div className="flex items-center gap-2.5 text-amber-300">
+              <Cloud className="w-4 h-4 shrink-0" />
+              <span>
+                <strong>Cross-Device &amp; Incognito Sync:</strong> Connect a Sync Room (e.g. <span className="underline font-bold">arosh</span>) so your tasks stay synchronized across incognito tabs, laptop &amp; phone!
+              </span>
+            </div>
+            <button
+              onClick={() => setIsSyncModalOpen(true)}
+              className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-black font-bold shrink-0 transition-all hover:scale-105"
+            >
+              Connect Room
+            </button>
+          </div>
+        )}
+
         {/* Story Vignette Card */}
         <div
           className={`border rounded-2xl p-3 sm:p-3.5 flex items-center justify-between gap-3 text-xs transition-all duration-300 transform hover:scale-[1.01] ${themeConfig.classes.cardBg} ${themeConfig.classes.cardBorder} ${themeConfig.classes.cardHoverGlow}`}
@@ -584,7 +636,7 @@ export function App() {
       />
 
       <footer className={`py-6 border-t text-center text-xs transition-colors ${themeConfig.classes.tableBorder} ${themeConfig.classes.textMuted}`}>
-        Priority ToDo • {themeConfig.emoji} {themeConfig.name} • Cross-Device Synced
+        Priority ToDo • {themeConfig.emoji} {themeConfig.name} • Real-Time Cloud Synced
       </footer>
     </div>
   );
