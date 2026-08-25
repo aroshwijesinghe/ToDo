@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import confetti from 'canvas-confetti';
 import { Plus } from 'lucide-react';
 import { Navbar } from './components/Navbar';
@@ -14,9 +14,9 @@ import { ThemeMode } from './types/theme';
 import { THEME_CONFIGS } from './utils/themeConfig';
 import { loadTasksFromGitHub, autoCommitTasksToGitHub } from './utils/githubSync';
 
-const STORAGE_KEY = 'priority_todo_tasks_v2';
+const STORAGE_KEY = 'priority_todo_tasks_v3';
 const THEME_STORAGE_KEY = 'priority_todo_theme_mode_v2';
-const CATEGORIES_STORAGE_KEY = 'priority_todo_categories_v2';
+const CATEGORIES_STORAGE_KEY = 'priority_todo_categories_v3';
 
 const DEFAULT_CATEGORIES = [
   'DevOps',
@@ -45,7 +45,6 @@ export function App() {
     return 'dark';
   });
 
-  // Local-First: Load immediately from localStorage with zero delay
   const [tasks, setTasks] = useState<TodoTask[]>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
@@ -89,7 +88,7 @@ export function App() {
 
   const themeConfig = THEME_CONFIGS[theme];
   const broadcastChannelRef = useRef<BroadcastChannel | null>(null);
-  const hasInitializedRef = useRef(false);
+  const lastTaskHashRef = useRef<string>('');
 
   // Apply theme to document element
   useEffect(() => {
@@ -105,41 +104,59 @@ export function App() {
     }
   }, [theme]);
 
-  // 1. Initial Load: Fetch latest tasks from GitHub without overwriting newly added local tasks
-  useEffect(() => {
-    if (hasInitializedRef.current) return;
-    hasInitializedRef.current = true;
+  // Helper to hash task state
+  const hashTasks = (tList: TodoTask[]): string => {
+    return tList.map(t => `${t.id}_${t.status}_${t.rank}_${t.pri}_${t.task}`).join('|');
+  };
 
-    loadTasksFromGitHub().then((ghTasks) => {
-      if (ghTasks && Array.isArray(ghTasks) && ghTasks.length > 0) {
-        setTasks((currentTasks) => {
-          // If user already has tasks in localStorage, merge smartly so no local tasks are lost
-          const localSaved = localStorage.getItem(STORAGE_KEY);
-          if (localSaved) {
-            try {
-              const parsed = JSON.parse(localSaved);
-              if (Array.isArray(parsed) && parsed.length > 0) {
-                // Keep local tasks as primary source of truth, but add any new remote ones
-                const currentIdSet = new Set(parsed.map((t: TodoTask) => t.id));
-                const remoteOnly = ghTasks.filter(t => !currentIdSet.has(t.id));
-                return remoteOnly.length > 0 ? [...parsed, ...remoteOnly] : parsed;
-              }
-            } catch (e) {}
-          }
-          return ghTasks;
-        });
+  // 1. Fetch from GitHub and synchronize background updates
+  const syncWithRemoteGitHub = useCallback(async () => {
+    try {
+      const remoteTasks = await loadTasksFromGitHub();
+      if (remoteTasks && Array.isArray(remoteTasks) && remoteTasks.length > 0) {
+        const remoteHash = hashTasks(remoteTasks);
+        if (remoteHash !== lastTaskHashRef.current) {
+          lastTaskHashRef.current = remoteHash;
+          setTasks(remoteTasks);
+          try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(remoteTasks));
+          } catch (e) {}
+        }
       }
-    });
+    } catch (e) {}
   }, []);
+
+  // Initial fetch on mount + Polling every 5 seconds + on window focus
+  useEffect(() => {
+    syncWithRemoteGitHub();
+
+    const interval = setInterval(() => {
+      syncWithRemoteGitHub();
+    }, 5000);
+
+    const handleFocus = () => {
+      syncWithRemoteGitHub();
+    };
+
+    window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleFocus);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleFocus);
+    };
+  }, [syncWithRemoteGitHub]);
 
   // 2. Real-Time Cross-Tab Synchronization via BroadcastChannel & Storage Event
   useEffect(() => {
     let bc: BroadcastChannel | null = null;
     try {
-      bc = new BroadcastChannel('priority_todo_sync_channel_v2');
+      bc = new BroadcastChannel('priority_todo_sync_v3');
       broadcastChannelRef.current = bc;
       bc.onmessage = (event) => {
         if (event.data?.type === 'TASKS_UPDATED' && Array.isArray(event.data.tasks)) {
+          lastTaskHashRef.current = hashTasks(event.data.tasks);
           setTasks(event.data.tasks);
           if (event.data.categories && Array.isArray(event.data.categories)) {
             setCategoriesList(event.data.categories);
@@ -153,6 +170,7 @@ export function App() {
         try {
           const parsed = JSON.parse(e.newValue);
           if (Array.isArray(parsed)) {
+            lastTaskHashRef.current = hashTasks(parsed);
             setTasks(parsed);
           }
         } catch (err) {}
@@ -167,10 +185,11 @@ export function App() {
     };
   }, []);
 
-  // 3. Save tasks immediately to localStorage, broadcast across tabs, and auto-commit to GitHub
+  // 3. Save tasks locally & Broadcast to open tabs & Commit to GitHub
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+      const currentHash = hashTasks(tasks);
 
       if (broadcastChannelRef.current) {
         broadcastChannelRef.current.postMessage({
@@ -180,11 +199,14 @@ export function App() {
         });
       }
 
-      // Background auto-commit to GitHub (debounced 1.5s)
-      const timeout = setTimeout(() => {
-        autoCommitTasksToGitHub(tasks);
-      }, 1500);
-      return () => clearTimeout(timeout);
+      // Auto-commit to GitHub if tasks changed
+      if (currentHash !== lastTaskHashRef.current) {
+        lastTaskHashRef.current = currentHash;
+        const timeout = setTimeout(() => {
+          autoCommitTasksToGitHub(tasks);
+        }, 1000);
+        return () => clearTimeout(timeout);
+      }
     } catch (e) {
       console.error('Failed to save tasks', e);
     }
