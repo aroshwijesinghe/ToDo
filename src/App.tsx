@@ -179,8 +179,11 @@ export function App() {
       result = result.filter(t => t.category === filter.category);
     }
 
-    // Sorting
+    // Sorting: completed tasks always sink to bottom unless filtering completed specifically
     result.sort((a, b) => {
+      if (a.status === 'completed' && b.status !== 'completed') return 1;
+      if (a.status !== 'completed' && b.status === 'completed') return -1;
+
       let comparison = 0;
       if (sortField === 'rank') {
         comparison = a.rank - b.rank;
@@ -202,8 +205,8 @@ export function App() {
 
   // Actions
   const handleToggleStatus = (id: string) => {
-    setTasks(prev =>
-      prev.map(t => {
+    setTasks(prev => {
+      const updated = prev.map(t => {
         if (t.id === id) {
           let nextStatus: TodoTask['status'] = 'todo';
           if (t.status === 'todo') nextStatus = 'in-progress';
@@ -226,8 +229,13 @@ export function App() {
           };
         }
         return t;
-      })
-    );
+      });
+
+      // Move completed tasks to the bottom of the list
+      const activeTasks = updated.filter(t => t.status !== 'completed');
+      const completedTasks = updated.filter(t => t.status === 'completed');
+      return [...activeTasks, ...completedTasks];
+    });
   };
 
   const handleSaveTask = (taskData: Omit<TodoTask, 'id' | 'createdAt'> & { id?: string }) => {
