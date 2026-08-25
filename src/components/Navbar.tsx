@@ -1,5 +1,8 @@
 import React from 'react';
-import { Plus, Terminal, LayoutList, Download, Sun, Moon, CheckCircle2 } from 'lucide-react';
+import { Plus, Terminal, LayoutList, Download, CheckCircle2 } from 'lucide-react';
+import { ThemeMode } from '../types/theme';
+import { THEME_CONFIGS } from '../utils/themeConfig';
+import { ThemeSelector } from './ThemeSelector';
 
 interface NavbarProps {
   viewMode: 'table' | 'terminal';
@@ -7,8 +10,8 @@ interface NavbarProps {
   onOpenAddModal: () => void;
   onOpenExportModal: () => void;
   taskCount: number;
-  theme: 'dark' | 'light';
-  onToggleTheme: () => void;
+  theme: ThemeMode;
+  onSelectTheme: (theme: ThemeMode) => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -18,72 +21,54 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenExportModal,
   taskCount,
   theme,
-  onToggleTheme,
+  onSelectTheme,
 }) => {
-  const isDark = theme === 'dark';
+  const themeConfig = THEME_CONFIGS[theme];
+  const isWhite = theme === 'white';
 
   return (
-    <header
-      className={`sticky top-0 z-30 transition-all duration-300 border-b ${
-        isDark
-          ? 'bg-[#121214]/80 backdrop-blur-2xl border-white/[0.08] shadow-[0_10px_30px_rgba(0,0,0,0.5)]'
-          : 'bg-white/80 backdrop-blur-2xl border-black/[0.06] shadow-[0_4px_20px_rgba(0,0,0,0.03)]'
-      }`}
-    >
+    <header className={`sticky top-0 z-30 transition-all duration-300 border-b ${themeConfig.classes.navBg} ${themeConfig.classes.navBorder}`}>
+      {/* Top dynamic story accent bar */}
+      <div className={`h-1.5 w-full bg-gradient-to-r ${themeConfig.classes.topBannerGradient}`} />
+
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
         {/* Brand / Logo */}
         <div className="flex items-center gap-3">
           <div
-            className={`w-9 h-9 rounded-2xl flex items-center justify-center transition-all ${
-              isDark
-                ? 'bg-gradient-to-br from-emerald-400 to-teal-600 text-black shadow-[0_2px_12px_rgba(52,211,153,0.3)]'
-                : 'bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-[0_4px_14px_rgba(16,185,129,0.25)]'
-            }`}
+            className="w-9 h-9 rounded-2xl flex items-center justify-center transition-transform hover:scale-110 shadow-lg text-white"
+            style={{ backgroundColor: themeConfig.accentHex }}
           >
             <CheckCircle2 className="w-5 h-5 stroke-[2.3]" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span
-                className={`text-base font-semibold tracking-tight ${
-                  isDark ? 'text-white' : 'text-slate-900'
-                }`}
-              >
-                Priority<span className="text-emerald-500">ToDo</span>
+              <span className={`text-base font-semibold tracking-tight ${themeConfig.classes.textPrimary}`}>
+                Priority<span style={{ color: themeConfig.accentHex }}>ToDo</span>
               </span>
-              <span
-                className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${
-                  isDark
-                    ? 'bg-white/10 text-white/70'
-                    : 'bg-black/5 text-slate-600'
-                }`}
-              >
-                {taskCount} goals
+              <span className={`text-[10px] font-semibold px-2.5 py-0.5 rounded-full ${themeConfig.classes.badgeBg} ${themeConfig.classes.badgeText}`}>
+                {themeConfig.emoji} {themeConfig.name}
               </span>
             </div>
+            <p className={`text-[11px] font-medium hidden sm:block ${themeConfig.classes.textMuted}`}>
+              {taskCount} goals • {themeConfig.tagline}
+            </p>
           </div>
         </div>
 
         {/* Action Controls */}
         <div className="flex items-center gap-2 sm:gap-3">
-          {/* iOS / macOS Segmented View Switcher */}
-          <div
-            className={`flex items-center p-0.5 rounded-xl border ${
-              isDark
-                ? 'bg-white/[0.06] border-white/[0.08]'
-                : 'bg-black/[0.04] border-black/[0.05]'
-            }`}
-          >
+          {/* Segmented View Switcher */}
+          <div className={`flex items-center p-0.5 rounded-xl border ${isWhite ? 'bg-black/[0.04] border-black/[0.05]' : 'bg-white/[0.06] border-white/[0.08]'}`}>
             <button
               onClick={() => setViewMode('table')}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${
                 viewMode === 'table'
-                  ? isDark
-                    ? 'bg-white/20 text-white shadow-sm font-semibold'
-                    : 'bg-white text-slate-900 shadow-sm font-semibold'
-                  : isDark
-                  ? 'text-white/60 hover:text-white'
-                  : 'text-slate-500 hover:text-slate-900'
+                  ? isWhite
+                    ? 'bg-white text-slate-900 shadow-sm font-semibold'
+                    : 'bg-white/20 text-white shadow-sm font-semibold'
+                  : isWhite
+                  ? 'text-slate-500 hover:text-slate-900'
+                  : 'text-white/60 hover:text-white'
               }`}
             >
               <LayoutList className="w-3.5 h-3.5" />
@@ -93,12 +78,12 @@ export const Navbar: React.FC<NavbarProps> = ({
               onClick={() => setViewMode('terminal')}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${
                 viewMode === 'terminal'
-                  ? isDark
-                    ? 'bg-white/20 text-white shadow-sm font-semibold'
-                    : 'bg-white text-slate-900 shadow-sm font-semibold'
-                  : isDark
-                  ? 'text-white/60 hover:text-white'
-                  : 'text-slate-500 hover:text-slate-900'
+                  ? isWhite
+                    ? 'bg-white text-slate-900 shadow-sm font-semibold'
+                    : 'bg-white/20 text-white shadow-sm font-semibold'
+                  : isWhite
+                  ? 'text-slate-500 hover:text-slate-900'
+                  : 'text-white/60 hover:text-white'
               }`}
             >
               <Terminal className="w-3.5 h-3.5" />
@@ -106,36 +91,26 @@ export const Navbar: React.FC<NavbarProps> = ({
             </button>
           </div>
 
-          {/* Theme Toggle Button */}
-          <button
-            onClick={onToggleTheme}
-            className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center border transition-all ${
-              isDark
-                ? 'bg-white/[0.06] border-white/[0.08] text-amber-300 hover:bg-white/[0.12]'
-                : 'bg-black/[0.04] border-black/[0.05] text-slate-700 hover:bg-black/[0.08]'
-            }`}
-            title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-          >
-            {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-          </button>
+          {/* Theme Selector Popover */}
+          <ThemeSelector currentTheme={theme} onSelectTheme={onSelectTheme} />
 
-          {/* Export / Import Button */}
+          {/* Export / Backup */}
           <button
             onClick={onOpenExportModal}
-            className={`hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-xl border transition-all ${
-              isDark
-                ? 'bg-white/[0.06] hover:bg-white/[0.12] text-white/80 border-white/[0.08]'
-                : 'bg-black/[0.04] hover:bg-black/[0.08] text-slate-700 border-black/[0.05]'
+            className={`hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-xl border transition-all hover:scale-105 active:scale-95 ${
+              isWhite
+                ? 'bg-white hover:bg-slate-50 text-slate-700 border-black/[0.06]'
+                : 'bg-white/[0.06] hover:bg-white/[0.12] text-white/80 border-white/[0.08]'
             }`}
           >
             <Download className="w-3.5 h-3.5 opacity-70" />
-            <span>Share / Backup</span>
+            <span>Share</span>
           </button>
 
-          {/* Apple-style "+ New Task" Button */}
+          {/* New Task Button */}
           <button
             onClick={onOpenAddModal}
-            className="flex items-center gap-1.5 px-4 py-1.5 text-xs font-semibold text-white bg-emerald-500 hover:bg-emerald-600 active:scale-95 rounded-xl shadow-[0_2px_12px_rgba(16,185,129,0.35)] transition-all duration-200"
+            className={`flex items-center gap-1.5 px-4 py-1.5 text-xs font-semibold rounded-xl transition-all duration-200 hover:scale-105 active:scale-95 ${themeConfig.classes.accentBtn}`}
           >
             <Plus className="w-4 h-4 stroke-[2.5]" />
             <span>New Task</span>
