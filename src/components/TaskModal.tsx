@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { X, Sparkles, Clock, Tag, AlignLeft, Check, Plus, Trash2 } from 'lucide-react';
+import { X, Sparkles, Clock, Tag, AlignLeft, Check, Plus } from 'lucide-react';
 import { TodoTask, TaskStatus } from '../types/todo';
+import { ThemeMode } from '../types/theme';
+import { THEME_CONFIGS } from '../utils/themeConfig';
 
 interface TaskModalProps {
   isOpen: boolean;
@@ -8,7 +10,7 @@ interface TaskModalProps {
   onSave: (taskData: Omit<TodoTask, 'id' | 'createdAt'> & { id?: string }) => void;
   initialData?: TodoTask | null;
   defaultRank: number;
-  isDark?: boolean;
+  theme?: ThemeMode;
   categories?: string[];
   onAddCategory?: (category: string) => void;
   onDeleteCategory?: (category: string) => void;
@@ -22,7 +24,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
   onSave,
   initialData,
   defaultRank,
-  isDark = true,
+  theme = 'dark',
   categories = ['DevOps', 'Machine Learning', 'AI Tools', 'Data Science', 'Backend', 'Projects', 'Writing', 'Personal', 'Automation'],
   onAddCategory,
   onDeleteCategory,
@@ -35,9 +37,10 @@ export const TaskModal: React.FC<TaskModalProps> = ({
   const [category, setCategory] = useState('Projects');
   const [rank, setRank] = useState<number>(defaultRank);
 
-  // New category creation input state
   const [newCatInput, setNewCatInput] = useState('');
   const [showAddCatInput, setShowAddCatInput] = useState(false);
+
+  const themeConfig = THEME_CONFIGS[theme];
 
   useEffect(() => {
     if (initialData) {
@@ -107,77 +110,66 @@ export const TaskModal: React.FC<TaskModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/65 backdrop-blur-md animate-in fade-in duration-200">
       <div
-        className={`border rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl transition-colors max-h-[92vh] flex flex-col ${
-          isDark ? 'bg-[#181b20] border-gray-700/80 text-gray-100' : 'bg-white border-gray-300 text-gray-900'
-        }`}
+        className={`border-t sm:border rounded-t-3xl sm:rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl transition-all max-h-[92vh] flex flex-col ${themeConfig.classes.cardBg} ${themeConfig.classes.cardBorder} ${themeConfig.classes.textPrimary}`}
       >
-        {/* Header */}
-        <div
-          className={`flex items-center justify-between px-6 py-4 border-b shrink-0 ${
-            isDark ? 'bg-[#121417] border-gray-800' : 'bg-gray-50 border-gray-200'
-          }`}
-        >
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-500">
+        {/* Mobile Pull Bar Handle */}
+        <div className="flex justify-center pt-2.5 pb-1 sm:hidden">
+          <div className="w-12 h-1.5 rounded-full bg-white/20 dark:bg-white/20" />
+        </div>
+
+        {/* Modal Header */}
+        <div className={`flex items-center justify-between px-5 sm:px-6 py-4 border-b shrink-0 ${themeConfig.classes.tableHeaderBg}`}>
+          <div className="flex items-center gap-2.5">
+            <div
+              className="w-8 h-8 rounded-xl flex items-center justify-center text-white"
+              style={{ backgroundColor: themeConfig.accentHex }}
+            >
               <Sparkles className="w-4 h-4" />
             </div>
-            <h3 className="text-base font-bold font-mono">
-              {initialData ? 'Edit Goal' : 'Create New Goal'}
+            <h3 className="text-base font-semibold tracking-tight">
+              {initialData ? 'Edit Objective' : 'New Objective'}
             </h3>
           </div>
           <button
             onClick={onClose}
-            className={`p-1 rounded-lg transition-colors ${
-              isDark ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-800' : 'text-gray-500 hover:text-gray-800 hover:bg-gray-100'
-            }`}
+            className="w-7 h-7 rounded-full flex items-center justify-center bg-white/10 hover:bg-white/20 transition-colors"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto flex-1">
+        {/* Form Body */}
+        <form onSubmit={handleSubmit} className="p-5 sm:p-6 space-y-4 overflow-y-auto flex-1 text-xs">
           {/* Task Name */}
           <div>
-            <label className={`block text-xs font-mono font-semibold mb-1.5 uppercase ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-              Task Name *
+            <label className={`block font-semibold uppercase tracking-wider mb-1.5 ${themeConfig.classes.textMuted}`}>
+              Objective Title *
             </label>
             <input
               type="text"
               required
               value={task}
               onChange={(e) => setTask(e.target.value)}
-              placeholder="e.g. CI/CD, Dockerize project, BERT model..."
-              className={`w-full px-3.5 py-2.5 border rounded-lg text-sm font-mono focus:outline-none transition-all ${
-                isDark
-                  ? 'bg-[#121417] border-gray-800 focus:border-emerald-500 text-gray-100'
-                  : 'bg-gray-50 border-gray-300 focus:border-emerald-500 text-gray-900'
-              }`}
+              placeholder="e.g. CI/CD Pipeline, Docker Containerization..."
+              className={`w-full px-3.5 sm:px-4 py-2.5 border rounded-xl text-xs sm:text-sm focus:outline-none transition-all ${themeConfig.classes.inputBg} ${themeConfig.classes.inputBorder} ${themeConfig.classes.textPrimary}`}
             />
           </div>
 
-          {/* Priority Slider (0 - 100) */}
+          {/* Priority Slider */}
           <div>
-            <div className="flex justify-between items-center mb-1.5 font-mono text-xs">
-              <label className={`font-semibold uppercase flex items-center gap-1.5 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                Priority Score (PRI):
+            <div className="flex justify-between items-center mb-1.5">
+              <label className={`font-semibold uppercase tracking-wider flex items-center gap-2 ${themeConfig.classes.textMuted}`}>
+                Priority Score:
                 <span
-                  className={`px-2 py-0.5 rounded font-bold ${
-                    pri >= 85
-                      ? 'bg-rose-500/20 text-rose-500 border border-rose-500/40'
-                      : pri >= 70
-                      ? 'bg-amber-500/20 text-amber-500 border border-amber-500/40'
-                      : pri >= 50
-                      ? 'bg-blue-500/20 text-blue-500 border border-blue-500/40'
-                      : isDark ? 'bg-gray-800 text-gray-400 border border-gray-700' : 'bg-gray-100 text-gray-600 border border-gray-300'
-                  }`}
+                  className="px-2.5 py-0.5 rounded-full font-bold text-white shadow-sm"
+                  style={{ backgroundColor: themeConfig.accentHex }}
                 >
                   {pri} / 100
                 </span>
               </label>
-              <span className={`text-[11px] ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+              <span className={`text-[11px] font-medium ${themeConfig.classes.textMuted}`}>
                 {pri >= 85 ? 'Critical Focus' : pri >= 70 ? 'High' : pri >= 50 ? 'Medium' : 'Low'}
               </span>
             </div>
@@ -187,21 +179,16 @@ export const TaskModal: React.FC<TaskModalProps> = ({
               max="100"
               value={pri}
               onChange={(e) => setPri(Number(e.target.value))}
-              className="w-full accent-emerald-500 cursor-pointer h-2 bg-gray-200 dark:bg-gray-800 rounded-lg"
+              className="w-full cursor-pointer h-2.5 rounded-full bg-black/10 dark:bg-white/10"
+              style={{ accentColor: themeConfig.accentHex }}
             />
-            <div className="flex justify-between text-[10px] text-gray-500 font-mono mt-1">
-              <span>0 (Low)</span>
-              <span>50 (Medium)</span>
-              <span>75 (High)</span>
-              <span>100 (Top)</span>
-            </div>
           </div>
 
           {/* Time Estimate & Rank */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className={`block text-xs font-mono font-semibold mb-1.5 uppercase flex items-center gap-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                <Clock className="w-3.5 h-3.5 text-gray-400" />
+              <label className={`block font-semibold uppercase tracking-wider mb-1.5 flex items-center gap-1 ${themeConfig.classes.textMuted}`}>
+                <Clock className="w-3.5 h-3.5 opacity-60" />
                 Time Estimate
               </label>
               <input
@@ -209,23 +196,15 @@ export const TaskModal: React.FC<TaskModalProps> = ({
                 value={time}
                 onChange={(e) => setTime(e.target.value)}
                 placeholder="e.g. 3-4h, 30-60m"
-                className={`w-full px-3 py-2 border rounded-lg text-xs font-mono focus:outline-none ${
-                  isDark
-                    ? 'bg-[#121417] border-gray-800 focus:border-emerald-500 text-gray-100'
-                    : 'bg-gray-50 border-gray-300 focus:border-emerald-500 text-gray-900'
-                }`}
+                className={`w-full px-3 py-2 border rounded-xl text-xs focus:outline-none ${themeConfig.classes.inputBg} ${themeConfig.classes.inputBorder} ${themeConfig.classes.textPrimary}`}
               />
               <div className="flex flex-wrap gap-1 mt-1.5">
-                {TIME_PRESETS.slice(0, 4).map((p) => (
+                {TIME_PRESETS.slice(0, 3).map((p) => (
                   <button
                     key={p}
                     type="button"
                     onClick={() => setTime(p)}
-                    className={`text-[10px] font-mono px-1.5 py-0.5 rounded border transition-colors ${
-                      isDark
-                        ? 'bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-gray-200 border-gray-700/50'
-                        : 'bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-900 border-gray-200'
-                    }`}
+                    className={`text-[10px] font-medium px-2 py-0.5 rounded-full border transition-colors ${themeConfig.classes.badgeBg} ${themeConfig.classes.cardBorder} ${themeConfig.classes.textSecondary}`}
                   >
                     {p}
                   </button>
@@ -234,7 +213,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
             </div>
 
             <div>
-              <label className={`block text-xs font-mono font-semibold mb-1.5 uppercase ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+              <label className={`block font-semibold uppercase tracking-wider mb-1.5 ${themeConfig.classes.textMuted}`}>
                 Rank Position
               </label>
               <input
@@ -242,28 +221,20 @@ export const TaskModal: React.FC<TaskModalProps> = ({
                 min="1"
                 value={rank}
                 onChange={(e) => setRank(Number(e.target.value))}
-                className={`w-full px-3 py-2 border rounded-lg text-xs font-mono focus:outline-none ${
-                  isDark
-                    ? 'bg-[#121417] border-gray-800 focus:border-emerald-500 text-gray-100'
-                    : 'bg-gray-50 border-gray-300 focus:border-emerald-500 text-gray-900'
-                }`}
+                className={`w-full px-3 py-2 border rounded-xl text-xs focus:outline-none ${themeConfig.classes.inputBg} ${themeConfig.classes.inputBorder} ${themeConfig.classes.textPrimary}`}
               />
             </div>
           </div>
 
           {/* Status */}
           <div>
-            <label className={`block text-xs font-mono font-semibold mb-1.5 uppercase ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+            <label className={`block font-semibold uppercase tracking-wider mb-1.5 ${themeConfig.classes.textMuted}`}>
               Status
             </label>
             <select
               value={status}
               onChange={(e) => setStatus(e.target.value as TaskStatus)}
-              className={`w-full px-3 py-2 border rounded-lg text-xs font-mono focus:outline-none ${
-                isDark
-                  ? 'bg-[#121417] border-gray-800 focus:border-emerald-500 text-gray-100'
-                  : 'bg-gray-50 border-gray-300 focus:border-emerald-500 text-gray-900'
-              }`}
+              className={`w-full px-3 py-2.5 border rounded-xl text-xs focus:outline-none ${themeConfig.classes.inputBg} ${themeConfig.classes.inputBorder} ${themeConfig.classes.textPrimary}`}
             >
               <option value="todo">To Do (Pending)</option>
               <option value="in-progress">In Progress</option>
@@ -271,29 +242,30 @@ export const TaskModal: React.FC<TaskModalProps> = ({
             </select>
           </div>
 
-          {/* CATEGORY SECTION WITH ADD & DELETE CONTROLS */}
-          <div className="space-y-2 border-t pt-3 border-gray-800/40">
+          {/* CATEGORY SECTION */}
+          <div className={`space-y-2 border-t pt-3 ${themeConfig.classes.cardBorder}`}>
             <div className="flex items-center justify-between">
-              <label className={`text-xs font-mono font-semibold uppercase flex items-center gap-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                <Tag className="w-3.5 h-3.5 text-gray-400" />
-                Category: <span className="text-emerald-500 lowercase">({category || 'None'})</span>
+              <label className={`font-semibold uppercase tracking-wider flex items-center gap-1.5 ${themeConfig.classes.textMuted}`}>
+                <Tag className="w-3.5 h-3.5 opacity-60" />
+                Category: <span style={{ color: themeConfig.accentHex }} className="capitalize font-bold">({category || 'None'})</span>
               </label>
 
-              {!showAddCatInput ? (
+              {!showAddCatInput && (
                 <button
                   type="button"
                   onClick={() => setShowAddCatInput(true)}
-                  className="flex items-center gap-1 text-[11px] font-mono text-emerald-500 hover:text-emerald-400 px-2 py-0.5 rounded bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 transition-all"
+                  className="flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full transition-all active:scale-95"
+                  style={{ backgroundColor: `${themeConfig.accentHex}20`, color: themeConfig.accentHex }}
                 >
                   <Plus className="w-3 h-3" />
                   <span>Add Category</span>
                 </button>
-              ) : null}
+              )}
             </div>
 
             {/* Inline Add Category Input */}
             {showAddCatInput && (
-              <div className="flex items-center gap-2 p-2 rounded-lg border bg-emerald-500/5 border-emerald-500/30 animate-in fade-in duration-150">
+              <div className={`flex items-center gap-2 p-2 rounded-xl border animate-in fade-in duration-150 ${themeConfig.classes.inputBg} ${themeConfig.classes.inputBorder}`}>
                 <input
                   type="text"
                   autoFocus
@@ -305,17 +277,13 @@ export const TaskModal: React.FC<TaskModalProps> = ({
                       handleAddNewCategory();
                     }
                   }}
-                  placeholder="Enter new category name..."
-                  className={`flex-1 px-2.5 py-1.5 border rounded-md text-xs font-mono focus:outline-none ${
-                    isDark
-                      ? 'bg-[#121417] border-gray-700 text-gray-100 focus:border-emerald-500'
-                      : 'bg-white border-gray-300 text-gray-900 focus:border-emerald-500'
-                  }`}
+                  placeholder="New category..."
+                  className={`flex-1 px-3 py-1.5 border rounded-lg text-xs focus:outline-none ${themeConfig.classes.inputBg} ${themeConfig.classes.inputBorder} ${themeConfig.classes.textPrimary}`}
                 />
                 <button
                   type="button"
                   onClick={handleAddNewCategory}
-                  className="px-3 py-1.5 text-xs font-mono font-bold text-gray-950 bg-emerald-400 hover:bg-emerald-300 rounded-md transition-all"
+                  className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${themeConfig.classes.accentBtn}`}
                 >
                   Save
                 </button>
@@ -325,38 +293,36 @@ export const TaskModal: React.FC<TaskModalProps> = ({
                     setShowAddCatInput(false);
                     setNewCatInput('');
                   }}
-                  className="p-1.5 text-gray-400 hover:text-gray-200 rounded-md transition-all"
+                  className={`p-1.5 rounded-lg transition-all ${themeConfig.classes.textMuted} hover:opacity-100`}
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
               </div>
             )}
 
-            {/* Category Chips with Delete Button */}
-            <div className="flex flex-wrap gap-1.5 pt-1 max-h-32 overflow-y-auto">
+            {/* Category Chips */}
+            <div className="flex flex-wrap gap-1.5 pt-1 max-h-28 overflow-y-auto">
               {categories.map((c) => {
                 const isSelected = category === c;
                 return (
                   <div
                     key={c}
                     onClick={() => setCategory(c)}
-                    className={`group/chip cursor-pointer inline-flex items-center gap-1.5 text-xs font-mono px-2.5 py-1 rounded-lg border transition-all ${
+                    className={`group/chip cursor-pointer inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full border transition-all ${
                       isSelected
-                        ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/60 font-semibold shadow-[0_0_10px_rgba(16,185,129,0.2)]'
-                        : isDark
-                        ? 'bg-gray-800/80 hover:bg-gray-800 text-gray-300 border-gray-700/60 hover:border-gray-600'
-                        : 'bg-gray-100 hover:bg-gray-200 text-gray-700 border-gray-200'
+                        ? 'text-white font-semibold shadow-sm'
+                        : `${themeConfig.classes.badgeBg} ${themeConfig.classes.cardBorder} ${themeConfig.classes.textSecondary}`
                     }`}
+                    style={isSelected ? { backgroundColor: themeConfig.accentHex, borderColor: themeConfig.accentHex } : {}}
                   >
                     <span>{c}</span>
-                    {isSelected && <Check className="w-3 h-3 text-emerald-400" />}
+                    {isSelected && <Check className="w-3 h-3 text-white" />}
 
-                    {/* Delete Category Button */}
                     <button
                       type="button"
                       onClick={(e) => handleDeleteCat(c, e)}
                       title={`Delete category "${c}"`}
-                      className="p-0.5 text-gray-400 hover:text-rose-400 hover:bg-rose-500/10 rounded transition-all opacity-40 group-hover/chip:opacity-100"
+                      className="p-0.5 text-slate-400 hover:text-rose-500 rounded-full transition-all opacity-40 group-hover/chip:opacity-100"
                     >
                       <X className="w-3 h-3" />
                     </button>
@@ -368,8 +334,8 @@ export const TaskModal: React.FC<TaskModalProps> = ({
 
           {/* Description */}
           <div>
-            <label className={`block text-xs font-mono font-semibold mb-1.5 uppercase flex items-center gap-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-              <AlignLeft className="w-3.5 h-3.5 text-gray-400" />
+            <label className={`block font-semibold uppercase tracking-wider mb-1.5 flex items-center gap-1 ${themeConfig.classes.textMuted}`}>
+              <AlignLeft className="w-3.5 h-3.5 opacity-60" />
               Description
             </label>
             <textarea
@@ -377,31 +343,25 @@ export const TaskModal: React.FC<TaskModalProps> = ({
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Test/build/deploy automation, Package apps + dependencies..."
-              className={`w-full px-3.5 py-2 border rounded-lg text-xs font-mono focus:outline-none resize-none ${
-                isDark
-                  ? 'bg-[#121417] border-gray-800 focus:border-emerald-500 text-gray-100'
-                  : 'bg-gray-50 border-gray-300 focus:border-emerald-500 text-gray-900'
-              }`}
+              className={`w-full px-3.5 py-2 border rounded-xl text-xs focus:outline-none resize-none ${themeConfig.classes.inputBg} ${themeConfig.classes.inputBorder} ${themeConfig.classes.textPrimary}`}
             />
           </div>
 
           {/* Modal Actions */}
-          <div className={`flex items-center justify-end gap-3 pt-3 border-t shrink-0 ${isDark ? 'border-gray-800' : 'border-gray-200'}`}>
+          <div className={`flex items-center justify-end gap-3 pt-3 border-t shrink-0 ${themeConfig.classes.cardBorder}`}>
             <button
               type="button"
               onClick={onClose}
-              className={`px-4 py-2 text-xs font-mono font-medium rounded-lg transition-colors ${
-                isDark ? 'text-gray-400 hover:text-gray-200 bg-gray-800/60 hover:bg-gray-800' : 'text-gray-600 hover:text-gray-900 bg-gray-100 hover:bg-gray-200'
-              }`}
+              className={`px-4 py-2.5 font-medium rounded-xl transition-colors ${themeConfig.classes.badgeBg} ${themeConfig.classes.textSecondary}`}
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="flex items-center gap-1.5 px-4 py-2 text-xs font-mono font-bold text-gray-950 bg-emerald-400 hover:bg-emerald-300 rounded-lg shadow-[0_0_15px_rgba(52,211,153,0.3)] transition-all"
+              className={`flex items-center gap-1.5 px-5 py-2.5 font-semibold rounded-xl shadow-md transition-all active:scale-95 ${themeConfig.classes.accentBtn}`}
             >
               <Check className="w-4 h-4" />
-              {initialData ? 'Save Changes' : 'Add Task'}
+              {initialData ? 'Save Changes' : 'Create Objective'}
             </button>
           </div>
         </form>

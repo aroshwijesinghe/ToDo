@@ -1,6 +1,8 @@
 import React, { useState, useRef } from 'react';
 import { X, Download, Upload, FileText, CheckCircle2, AlertCircle } from 'lucide-react';
 import { TodoTask } from '../types/todo';
+import { ThemeMode } from '../types/theme';
+import { THEME_CONFIGS } from '../utils/themeConfig';
 import { exportToCSV, exportToJSON } from '../utils/helpers';
 
 interface ExportImportModalProps {
@@ -8,7 +10,7 @@ interface ExportImportModalProps {
   onClose: () => void;
   tasks: TodoTask[];
   onImportTasks: (tasks: TodoTask[]) => void;
-  isDark?: boolean;
+  theme?: ThemeMode;
 }
 
 export const ExportImportModal: React.FC<ExportImportModalProps> = ({
@@ -16,10 +18,12 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
   onClose,
   tasks,
   onImportTasks,
-  isDark = true,
+  theme = 'dark',
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [importStatus, setImportStatus] = useState<{ success?: boolean; message?: string }>({});
+
+  const themeConfig = THEME_CONFIGS[theme];
 
   if (!isOpen) return null;
 
@@ -50,41 +54,32 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-200">
       <div
-        className={`border rounded-2xl w-full max-w-md overflow-hidden shadow-2xl transition-colors ${
-          isDark ? 'bg-[#181b20] border-gray-700/80 text-gray-100' : 'bg-white border-gray-300 text-gray-900'
-        }`}
+        className={`border rounded-3xl w-full max-w-md overflow-hidden shadow-2xl transition-all ${themeConfig.classes.cardBg} ${themeConfig.classes.cardBorder} ${themeConfig.classes.textPrimary}`}
       >
         {/* Header */}
-        <div
-          className={`flex items-center justify-between px-6 py-4 border-b ${
-            isDark ? 'bg-[#121417] border-gray-800' : 'bg-gray-50 border-gray-200'
-          }`}
-        >
-          <h3 className="text-base font-bold font-mono flex items-center gap-2">
-            <FileText className="w-4 h-4 text-emerald-500" />
-            Export / Import Data
+        <div className={`flex items-center justify-between px-6 py-4.5 border-b ${themeConfig.classes.tableHeaderBg}`}>
+          <h3 className="text-base font-semibold tracking-tight flex items-center gap-2">
+            <FileText className="w-4 h-4" style={{ color: themeConfig.accentHex }} />
+            Share &amp; Backup
           </h3>
           <button
             onClick={onClose}
-            className={`p-1 rounded-lg transition-colors ${
-              isDark ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-800' : 'text-gray-500 hover:text-gray-800 hover:bg-gray-100'
-            }`}
+            className="w-7 h-7 rounded-full flex items-center justify-center bg-white/10 hover:bg-white/20 transition-colors"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Content */}
         <div className="p-6 space-y-5">
-          {/* Status alert */}
           {importStatus.message && (
             <div
-              className={`p-3 rounded-lg flex items-center gap-2 text-xs font-mono border ${
+              className={`p-3 rounded-2xl flex items-center gap-2.5 text-xs font-medium border ${
                 importStatus.success
-                  ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/30'
-                  : 'bg-rose-500/10 text-rose-500 border-rose-500/30'
+                  ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
+                  : 'bg-rose-500/10 text-rose-500 border-rose-500/20'
               }`}
             >
               {importStatus.success ? (
@@ -98,38 +93,30 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
 
           {/* Export Options */}
           <div>
-            <h4 className={`text-xs font-mono uppercase font-semibold mb-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-              Export Tasks ({tasks.length} items)
+            <h4 className={`text-xs uppercase font-semibold tracking-wider mb-2.5 ${themeConfig.classes.textMuted}`}>
+              Export Dataset ({tasks.length} objectives)
             </h4>
             <div className="grid grid-cols-2 gap-3">
               <button
                 onClick={() => exportToJSON(tasks)}
-                className={`flex items-center justify-center gap-2 py-2.5 px-3 border rounded-lg text-xs font-mono transition-all ${
-                  isDark
-                    ? 'bg-[#121417] hover:bg-gray-800 border-gray-800 text-gray-200'
-                    : 'bg-gray-50 hover:bg-gray-100 border-gray-200 text-gray-800'
-                }`}
+                className={`flex items-center justify-center gap-2 py-3 px-3.5 border rounded-2xl text-xs font-medium transition-all hover:scale-105 active:scale-95 ${themeConfig.classes.inputBg} ${themeConfig.classes.cardBorder} ${themeConfig.classes.textPrimary}`}
               >
-                <Download className="w-3.5 h-3.5 text-emerald-500" />
+                <Download className="w-4 h-4" style={{ color: themeConfig.accentHex }} />
                 Export JSON
               </button>
               <button
                 onClick={() => exportToCSV(tasks)}
-                className={`flex items-center justify-center gap-2 py-2.5 px-3 border rounded-lg text-xs font-mono transition-all ${
-                  isDark
-                    ? 'bg-[#121417] hover:bg-gray-800 border-gray-800 text-gray-200'
-                    : 'bg-gray-50 hover:bg-gray-100 border-gray-200 text-gray-800'
-                }`}
+                className={`flex items-center justify-center gap-2 py-3 px-3.5 border rounded-2xl text-xs font-medium transition-all hover:scale-105 active:scale-95 ${themeConfig.classes.inputBg} ${themeConfig.classes.cardBorder} ${themeConfig.classes.textPrimary}`}
               >
-                <Download className="w-3.5 h-3.5 text-emerald-500" />
+                <Download className="w-4 h-4" style={{ color: themeConfig.accentHex }} />
                 Export CSV
               </button>
             </div>
           </div>
 
-          <div className={`border-t pt-4 ${isDark ? 'border-gray-800' : 'border-gray-200'}`}>
-            <h4 className={`text-xs font-mono uppercase font-semibold mb-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-              Import from Backup
+          <div className={`border-t pt-4 ${themeConfig.classes.cardBorder}`}>
+            <h4 className={`text-xs uppercase font-semibold tracking-wider mb-2.5 ${themeConfig.classes.textMuted}`}>
+              Restore from JSON File
             </h4>
             <input
               type="file"
@@ -140,10 +127,16 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
             />
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 rounded-lg text-xs font-mono text-emerald-500 font-semibold transition-all"
+              className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-2xl text-xs font-semibold transition-all hover:scale-102 active:scale-98"
+              style={{
+                backgroundColor: `${themeConfig.accentHex}20`,
+                borderColor: `${themeConfig.accentHex}40`,
+                color: themeConfig.accentHex,
+                borderWidth: '1px'
+              }}
             >
               <Upload className="w-4 h-4" />
-              Choose JSON File to Import
+              Select File to Import
             </button>
           </div>
         </div>

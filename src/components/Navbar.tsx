@@ -1,14 +1,19 @@
 import React from 'react';
-import { Plus, Terminal, LayoutList, Download, RotateCcw, Sparkles, Sun, Moon } from 'lucide-react';
+import { Plus, Terminal, LayoutList, Download, CheckCircle2, Cloud } from 'lucide-react';
+import { ThemeMode } from '../types/theme';
+import { THEME_CONFIGS } from '../utils/themeConfig';
+import { ThemeSelector } from './ThemeSelector';
 
 interface NavbarProps {
   viewMode: 'table' | 'terminal';
   setViewMode: (mode: 'table' | 'terminal') => void;
   onOpenAddModal: () => void;
   onOpenExportModal: () => void;
+  onOpenSyncModal: () => void;
+  syncKey: string | null;
   taskCount: number;
-  theme: 'dark' | 'light';
-  onToggleTheme: () => void;
+  theme: ThemeMode;
+  onSelectTheme: (theme: ThemeMode) => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -16,171 +21,115 @@ export const Navbar: React.FC<NavbarProps> = ({
   setViewMode,
   onOpenAddModal,
   onOpenExportModal,
+  onOpenSyncModal,
+  syncKey,
   taskCount,
   theme,
-  onToggleTheme,
+  onSelectTheme,
 }) => {
-  const isDark = theme === 'dark';
+  const themeConfig = THEME_CONFIGS[theme];
+  const isWhite = theme === 'white';
 
   return (
-    <header
-      className={`sticky top-0 z-30 backdrop-blur-md border-b transition-colors duration-200 shadow-md ${
-        isDark
-          ? 'bg-[#121417]/95 border-gray-800/80 shadow-[0_4px_20px_rgba(0,0,0,0.5)]'
-          : 'bg-white/95 border-gray-200 shadow-[0_2px_15px_rgba(0,0,0,0.05)]'
-      }`}
-    >
-      {/* Top accent bar matching user screenshot banner */}
-      <div className="h-1.5 w-full bg-gradient-to-r from-emerald-500 via-teal-400 to-green-500 shadow-[0_0_12px_rgba(16,185,129,0.5)]" />
+    <header className={`sticky top-0 z-30 transition-all duration-300 border-b ${themeConfig.classes.navBg} ${themeConfig.classes.navBorder}`}>
+      {/* Top dynamic story accent line */}
+      <div className={`h-1.5 w-full bg-gradient-to-r ${themeConfig.classes.topBannerGradient}`} />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div className="max-w-6xl mx-auto px-3.5 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2 sm:gap-4">
         {/* Brand / Logo */}
-        <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-start">
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.2)]">
-              <Sparkles className="w-5 h-5" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h1
-                  className={`text-lg font-bold tracking-tight flex items-center gap-1.5 ${
-                    isDark ? 'text-gray-100' : 'text-gray-900'
-                  }`}
-                >
-                  Priority<span className="text-emerald-500">ToDo</span>
-                </h1>
-                <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
-                  v1.1
-                </span>
-              </div>
-              <p className={`text-xs font-mono ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                {taskCount} prioritized goals loaded
-              </p>
-            </div>
+        <div className="flex items-center gap-2.5 sm:gap-3">
+          <div
+            className="w-8 h-8 sm:w-9 sm:h-9 rounded-2xl flex items-center justify-center transition-transform hover:scale-110 shadow-lg text-white shrink-0"
+            style={{ backgroundColor: themeConfig.accentHex }}
+          >
+            <CheckCircle2 className="w-4.5 h-4.5 sm:w-5 sm:h-5 stroke-[2.3]" />
           </div>
-
-          {/* Controls for mobile view */}
-          <div className="flex items-center gap-1.5 sm:hidden">
-            <button
-              onClick={onToggleTheme}
-              className={`p-2 rounded-lg border transition-all ${
-                isDark
-                  ? 'bg-[#181b20] border-gray-800 text-amber-400 hover:text-amber-300'
-                  : 'bg-gray-100 border-gray-200 text-slate-700 hover:text-slate-900'
-              }`}
-              title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-            >
-              {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-            </button>
-            <div
-              className={`flex items-center p-0.5 rounded-lg border ${
-                isDark ? 'bg-[#181b20] border-gray-800' : 'bg-gray-100 border-gray-200'
-              }`}
-            >
-              <button
-                onClick={() => setViewMode('table')}
-                className={`p-1.5 rounded-md text-xs font-medium transition-all ${
-                  viewMode === 'table'
-                    ? 'bg-emerald-500 text-gray-950 font-bold shadow'
-                    : isDark
-                    ? 'text-gray-400 hover:text-gray-200'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                <LayoutList className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => setViewMode('terminal')}
-                className={`p-1.5 rounded-md text-xs font-medium transition-all ${
-                  viewMode === 'terminal'
-                    ? 'bg-emerald-500 text-gray-950 font-bold shadow'
-                    : isDark
-                    ? 'text-gray-400 hover:text-gray-200'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                <Terminal className="w-4 h-4" />
-              </button>
+          <div>
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <span className={`text-sm sm:text-base font-bold tracking-tight ${themeConfig.classes.textPrimary}`}>
+                Priority<span style={{ color: themeConfig.accentHex }}>ToDo</span>
+              </span>
+              <span className={`text-[9px] sm:text-[10px] font-semibold px-2 py-0.5 rounded-full ${themeConfig.classes.badgeBg} ${themeConfig.classes.badgeText}`}>
+                {themeConfig.emoji} <span className="hidden sm:inline">{themeConfig.name}</span>
+              </span>
             </div>
+            <p className={`text-[10px] sm:text-[11px] font-medium hidden md:block ${themeConfig.classes.textMuted}`}>
+              {taskCount} goals • {themeConfig.tagline}
+            </p>
           </div>
         </div>
 
         {/* Action Controls */}
-        <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end flex-wrap">
-          {/* Desktop View Switcher */}
-          <div
-            className={`hidden sm:flex items-center p-1 rounded-lg border ${
-              isDark ? 'bg-[#181b20] border-gray-800' : 'bg-gray-100 border-gray-200'
+        <div className="flex items-center gap-1.5 sm:gap-2.5">
+          {/* Cloud Sync Button */}
+          <button
+            onClick={onOpenSyncModal}
+            className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all duration-200 hover:scale-105 active:scale-95 ${
+              syncKey
+                ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-400'
+                : `${themeConfig.classes.badgeBg} ${themeConfig.classes.cardBorder} ${themeConfig.classes.textSecondary}`
             }`}
+            title="Cross-Device Sync (Phone & Laptop)"
           >
+            <Cloud className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">{syncKey ? 'Synced' : 'Sync'}</span>
+            {syncKey && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />}
+          </button>
+
+          {/* View Switcher on Desktop */}
+          <div className={`hidden md:flex items-center p-0.5 rounded-xl border ${isWhite ? 'bg-black/[0.04] border-black/[0.05]' : 'bg-white/[0.06] border-white/[0.08]'}`}>
             <button
               onClick={() => setViewMode('table')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${
                 viewMode === 'table'
-                  ? 'bg-emerald-500 text-gray-950 font-semibold shadow'
-                  : isDark
-                  ? 'text-gray-400 hover:text-gray-200'
-                  : 'text-gray-600 hover:text-gray-900'
+                  ? isWhite
+                    ? 'bg-white text-slate-900 shadow-sm font-semibold'
+                    : 'bg-white/20 text-white shadow-sm font-semibold'
+                  : isWhite
+                  ? 'text-slate-500 hover:text-slate-900'
+                  : 'text-white/60 hover:text-white'
               }`}
             >
               <LayoutList className="w-3.5 h-3.5" />
-              Table View
+              <span>Table</span>
             </button>
             <button
               onClick={() => setViewMode('terminal')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${
                 viewMode === 'terminal'
-                  ? 'bg-emerald-500 text-gray-950 font-semibold shadow'
-                  : isDark
-                  ? 'text-gray-400 hover:text-gray-200'
-                  : 'text-gray-600 hover:text-gray-900'
+                  ? isWhite
+                    ? 'bg-white text-slate-900 shadow-sm font-semibold'
+                    : 'bg-white/20 text-white shadow-sm font-semibold'
+                  : isWhite
+                  ? 'text-slate-500 hover:text-slate-900'
+                  : 'text-white/60 hover:text-white'
               }`}
             >
               <Terminal className="w-3.5 h-3.5" />
-              Terminal View
+              <span>Terminal</span>
             </button>
           </div>
 
-          {/* Theme Toggle Button (Desktop) */}
-          <button
-            onClick={onToggleTheme}
-            className={`hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono font-medium rounded-lg border transition-all ${
-              isDark
-                ? 'bg-[#1a1e24] hover:bg-[#232830] text-amber-300 border-gray-700/60'
-                : 'bg-gray-100 hover:bg-gray-200 text-slate-700 border-gray-300'
-            }`}
-            title={isDark ? 'Switch to Light (White) Mode' : 'Switch to Dark Mode'}
-          >
-            {isDark ? (
-              <>
-                <Sun className="w-3.5 h-3.5 text-amber-400" />
-                <span>Light</span>
-              </>
-            ) : (
-              <>
-                <Moon className="w-3.5 h-3.5 text-slate-700" />
-                <span>Dark</span>
-              </>
-            )}
-          </button>
+          {/* Theme Selector Popover */}
+          <ThemeSelector currentTheme={theme} onSelectTheme={onSelectTheme} />
 
-          {/* Export / Import */}
+          {/* Export / Backup on Desktop */}
           <button
             onClick={onOpenExportModal}
-            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border transition-all ${
-              isDark
-                ? 'bg-[#1a1e24] hover:bg-[#232830] text-gray-300 hover:text-white border-gray-700/60'
-                : 'bg-white hover:bg-gray-100 text-gray-700 border-gray-300'
+            className={`hidden lg:flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-xl border transition-all hover:scale-105 active:scale-95 ${
+              isWhite
+                ? 'bg-white hover:bg-slate-50 text-slate-700 border-black/[0.06]'
+                : 'bg-white/[0.06] hover:bg-white/[0.12] text-white/80 border-white/[0.08]'
             }`}
           >
-            <Download className="w-3.5 h-3.5 text-gray-400" />
-            <span>Export/Import</span>
+            <Download className="w-3.5 h-3.5 opacity-70" />
+            <span>Share</span>
           </button>
 
-          {/* Add Task Button */}
+          {/* New Task Button */}
           <button
             onClick={onOpenAddModal}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-gray-950 bg-emerald-400 hover:bg-emerald-300 rounded-lg shadow-[0_0_15px_rgba(52,211,153,0.3)] transition-all transform hover:-translate-y-0.5 active:translate-y-0"
+            className={`flex items-center gap-1 sm:gap-1.5 px-3 sm:px-4 py-1.5 text-xs font-semibold rounded-xl transition-all duration-200 hover:scale-105 active:scale-95 ${themeConfig.classes.accentBtn}`}
           >
             <Plus className="w-4 h-4 stroke-[2.5]" />
             <span>New Task</span>
