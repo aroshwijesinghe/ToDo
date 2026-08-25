@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import confetti from 'canvas-confetti';
-import { Plus, Cloud, Link2, Sparkles, Github } from 'lucide-react';
+import { Plus, Cloud, Link2, Sparkles, GitBranch } from 'lucide-react';
 import { Navbar } from './components/Navbar';
 import { StatsBanner } from './components/StatsBanner';
 import { FilterBar } from './components/FilterBar';
@@ -555,7 +555,7 @@ export function App() {
         {gitHubConfig?.token && (
           <div className="p-2.5 sm:p-3 rounded-2xl bg-black/40 border border-white/10 flex items-center justify-between text-xs">
             <div className="flex items-center gap-2 text-white">
-              <Github className="w-4 h-4 text-emerald-400" />
+              <GitBranch className="w-4 h-4 text-emerald-400" />
               <span>
                 <strong>🐙 GitHub Database:</strong> Auto-committing changes to <code className="text-emerald-400 font-mono">data/tasks.json</code> on <code className="font-mono">{gitHubConfig.owner}/{gitHubConfig.repo}</code>
               </span>

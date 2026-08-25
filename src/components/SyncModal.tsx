@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Smartphone, Laptop, RefreshCw, Copy, Check, QrCode, Cloud, ShieldCheck, Key, Database, Globe, Github, ExternalLink } from 'lucide-react';
+import { X, Smartphone, Laptop, RefreshCw, Copy, Check, QrCode, Cloud, ShieldCheck, Key, Database, Globe, GitBranch, ExternalLink } from 'lucide-react';
 import { ThemeMode } from '../types/theme';
 import { THEME_CONFIGS } from '../utils/themeConfig';
 import { getSyncShareUrl, generateSyncKey, SupabaseConfig } from '../utils/cloudSync';
@@ -306,7 +306,7 @@ export const SyncModal: React.FC<SyncModalProps> = ({
               className={`w-full flex items-center justify-between p-3 rounded-xl border text-xs font-semibold ${themeConfig.classes.badgeBg} ${themeConfig.classes.cardBorder} hover:scale-[1.01] transition-transform`}
             >
               <span className="flex items-center gap-2">
-                <Github className="w-4 h-4 text-white" />
+                <GitBranch className="w-4 h-4 text-white" />
                 <span>🐙 GitHub as a Database (<code>data/tasks.json</code>)</span>
                 {gitHubConfig?.token && (
                   <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-bold">
