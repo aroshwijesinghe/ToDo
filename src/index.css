@@ -1,32 +1,50 @@
 @import "tailwindcss";
 
 @layer base {
+  :root {
+    --apple-font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+
   body {
-    @apply antialiased min-h-screen transition-colors duration-200;
+    font-family: var(--apple-font);
+    @apply antialiased min-h-screen transition-colors duration-300;
   }
 }
 
-/* Custom scrollbar */
+/* Apple-style smooth scrollbars */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 .dark ::-webkit-scrollbar-thumb {
-  background: #2d333b;
-  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 9999px;
 }
 .dark ::-webkit-scrollbar-thumb:hover {
-  background: #3e4652;
+  background: rgba(255, 255, 255, 0.25);
 }
 :not(.dark) ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 9999px;
 }
 :not(.dark) ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: rgba(0, 0, 0, 0.25);
+}
+
+/* Apple Glassmorphism and animations */
+.apple-blur-dark {
+  background: rgba(22, 22, 24, 0.75);
+  backdrop-filter: blur(25px) saturate(180%);
+  -webkit-backdrop-filter: blur(25px) saturate(180%);
+}
+
+.apple-blur-light {
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(25px) saturate(180%);
+  -webkit-backdrop-filter: blur(25px) saturate(180%);
 }
 
 @keyframes shimmer-move {
@@ -35,14 +53,14 @@
 }
 
 .animate-shimmer {
-  animation: shimmer-move 2.5s infinite linear;
+  animation: shimmer-move 3s infinite cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-@keyframes pulse-glow {
-  0%, 100% { opacity: 0.8; filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.4)); }
-  50% { opacity: 1; filter: drop-shadow(0 0 16px rgba(16, 185, 129, 0.7)); }
+@keyframes apple-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.9; }
+  50% { transform: scale(1.02); opacity: 1; }
 }
 
-.animate-progress-glow {
-  animation: pulse-glow 2.5s infinite ease-in-out;
+.animate-apple-pulse {
+  animation: apple-pulse 3s infinite ease-in-out;
 }
