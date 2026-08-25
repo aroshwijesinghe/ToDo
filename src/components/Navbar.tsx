@@ -1,5 +1,5 @@
 import React from 'react';
-import { Plus, Terminal, LayoutList, Download, RotateCcw, Sparkles, Sun, Moon } from 'lucide-react';
+import { Plus, Terminal, LayoutList, Download, Sun, Moon, CheckCircle2 } from 'lucide-react';
 
 interface NavbarProps {
   viewMode: 'table' | 'terminal';
@@ -24,163 +24,118 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   return (
     <header
-      className={`sticky top-0 z-30 backdrop-blur-md border-b transition-colors duration-200 shadow-md ${
+      className={`sticky top-0 z-30 transition-all duration-300 border-b ${
         isDark
-          ? 'bg-[#121417]/95 border-gray-800/80 shadow-[0_4px_20px_rgba(0,0,0,0.5)]'
-          : 'bg-white/95 border-gray-200 shadow-[0_2px_15px_rgba(0,0,0,0.05)]'
+          ? 'bg-[#121214]/80 backdrop-blur-2xl border-white/[0.08] shadow-[0_10px_30px_rgba(0,0,0,0.5)]'
+          : 'bg-white/80 backdrop-blur-2xl border-black/[0.06] shadow-[0_4px_20px_rgba(0,0,0,0.03)]'
       }`}
     >
-      {/* Top accent bar matching user screenshot banner */}
-      <div className="h-1.5 w-full bg-gradient-to-r from-emerald-500 via-teal-400 to-green-500 shadow-[0_0_12px_rgba(16,185,129,0.5)]" />
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
         {/* Brand / Logo */}
-        <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-start">
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.2)]">
-              <Sparkles className="w-5 h-5" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h1
-                  className={`text-lg font-bold tracking-tight flex items-center gap-1.5 ${
-                    isDark ? 'text-gray-100' : 'text-gray-900'
-                  }`}
-                >
-                  Priority<span className="text-emerald-500">ToDo</span>
-                </h1>
-                <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
-                  v1.1
-                </span>
-              </div>
-              <p className={`text-xs font-mono ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                {taskCount} prioritized goals loaded
-              </p>
-            </div>
+        <div className="flex items-center gap-3">
+          <div
+            className={`w-9 h-9 rounded-2xl flex items-center justify-center transition-all ${
+              isDark
+                ? 'bg-gradient-to-br from-emerald-400 to-teal-600 text-black shadow-[0_2px_12px_rgba(52,211,153,0.3)]'
+                : 'bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-[0_4px_14px_rgba(16,185,129,0.25)]'
+            }`}
+          >
+            <CheckCircle2 className="w-5 h-5 stroke-[2.3]" />
           </div>
-
-          {/* Controls for mobile view */}
-          <div className="flex items-center gap-1.5 sm:hidden">
-            <button
-              onClick={onToggleTheme}
-              className={`p-2 rounded-lg border transition-all ${
-                isDark
-                  ? 'bg-[#181b20] border-gray-800 text-amber-400 hover:text-amber-300'
-                  : 'bg-gray-100 border-gray-200 text-slate-700 hover:text-slate-900'
-              }`}
-              title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-            >
-              {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-            </button>
-            <div
-              className={`flex items-center p-0.5 rounded-lg border ${
-                isDark ? 'bg-[#181b20] border-gray-800' : 'bg-gray-100 border-gray-200'
-              }`}
-            >
-              <button
-                onClick={() => setViewMode('table')}
-                className={`p-1.5 rounded-md text-xs font-medium transition-all ${
-                  viewMode === 'table'
-                    ? 'bg-emerald-500 text-gray-950 font-bold shadow'
-                    : isDark
-                    ? 'text-gray-400 hover:text-gray-200'
-                    : 'text-gray-600 hover:text-gray-900'
+          <div>
+            <div className="flex items-center gap-2">
+              <span
+                className={`text-base font-semibold tracking-tight ${
+                  isDark ? 'text-white' : 'text-slate-900'
                 }`}
               >
-                <LayoutList className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => setViewMode('terminal')}
-                className={`p-1.5 rounded-md text-xs font-medium transition-all ${
-                  viewMode === 'terminal'
-                    ? 'bg-emerald-500 text-gray-950 font-bold shadow'
-                    : isDark
-                    ? 'text-gray-400 hover:text-gray-200'
-                    : 'text-gray-600 hover:text-gray-900'
+                Priority<span className="text-emerald-500">ToDo</span>
+              </span>
+              <span
+                className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${
+                  isDark
+                    ? 'bg-white/10 text-white/70'
+                    : 'bg-black/5 text-slate-600'
                 }`}
               >
-                <Terminal className="w-4 h-4" />
-              </button>
+                {taskCount} goals
+              </span>
             </div>
           </div>
         </div>
 
         {/* Action Controls */}
-        <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end flex-wrap">
-          {/* Desktop View Switcher */}
+        <div className="flex items-center gap-2 sm:gap-3">
+          {/* iOS / macOS Segmented View Switcher */}
           <div
-            className={`hidden sm:flex items-center p-1 rounded-lg border ${
-              isDark ? 'bg-[#181b20] border-gray-800' : 'bg-gray-100 border-gray-200'
+            className={`flex items-center p-0.5 rounded-xl border ${
+              isDark
+                ? 'bg-white/[0.06] border-white/[0.08]'
+                : 'bg-black/[0.04] border-black/[0.05]'
             }`}
           >
             <button
               onClick={() => setViewMode('table')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${
                 viewMode === 'table'
-                  ? 'bg-emerald-500 text-gray-950 font-semibold shadow'
+                  ? isDark
+                    ? 'bg-white/20 text-white shadow-sm font-semibold'
+                    : 'bg-white text-slate-900 shadow-sm font-semibold'
                   : isDark
-                  ? 'text-gray-400 hover:text-gray-200'
-                  : 'text-gray-600 hover:text-gray-900'
+                  ? 'text-white/60 hover:text-white'
+                  : 'text-slate-500 hover:text-slate-900'
               }`}
             >
               <LayoutList className="w-3.5 h-3.5" />
-              Table View
+              <span className="hidden sm:inline">Table</span>
             </button>
             <button
               onClick={() => setViewMode('terminal')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${
                 viewMode === 'terminal'
-                  ? 'bg-emerald-500 text-gray-950 font-semibold shadow'
+                  ? isDark
+                    ? 'bg-white/20 text-white shadow-sm font-semibold'
+                    : 'bg-white text-slate-900 shadow-sm font-semibold'
                   : isDark
-                  ? 'text-gray-400 hover:text-gray-200'
-                  : 'text-gray-600 hover:text-gray-900'
+                  ? 'text-white/60 hover:text-white'
+                  : 'text-slate-500 hover:text-slate-900'
               }`}
             >
               <Terminal className="w-3.5 h-3.5" />
-              Terminal View
+              <span className="hidden sm:inline">Terminal</span>
             </button>
           </div>
 
-          {/* Theme Toggle Button (Desktop) */}
+          {/* Theme Toggle Button */}
           <button
             onClick={onToggleTheme}
-            className={`hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono font-medium rounded-lg border transition-all ${
+            className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center border transition-all ${
               isDark
-                ? 'bg-[#1a1e24] hover:bg-[#232830] text-amber-300 border-gray-700/60'
-                : 'bg-gray-100 hover:bg-gray-200 text-slate-700 border-gray-300'
+                ? 'bg-white/[0.06] border-white/[0.08] text-amber-300 hover:bg-white/[0.12]'
+                : 'bg-black/[0.04] border-black/[0.05] text-slate-700 hover:bg-black/[0.08]'
             }`}
-            title={isDark ? 'Switch to Light (White) Mode' : 'Switch to Dark Mode'}
+            title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
           >
-            {isDark ? (
-              <>
-                <Sun className="w-3.5 h-3.5 text-amber-400" />
-                <span>Light</span>
-              </>
-            ) : (
-              <>
-                <Moon className="w-3.5 h-3.5 text-slate-700" />
-                <span>Dark</span>
-              </>
-            )}
+            {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </button>
 
-          {/* Export / Import */}
+          {/* Export / Import Button */}
           <button
             onClick={onOpenExportModal}
-            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border transition-all ${
+            className={`hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-xl border transition-all ${
               isDark
-                ? 'bg-[#1a1e24] hover:bg-[#232830] text-gray-300 hover:text-white border-gray-700/60'
-                : 'bg-white hover:bg-gray-100 text-gray-700 border-gray-300'
+                ? 'bg-white/[0.06] hover:bg-white/[0.12] text-white/80 border-white/[0.08]'
+                : 'bg-black/[0.04] hover:bg-black/[0.08] text-slate-700 border-black/[0.05]'
             }`}
           >
-            <Download className="w-3.5 h-3.5 text-gray-400" />
-            <span>Export/Import</span>
+            <Download className="w-3.5 h-3.5 opacity-70" />
+            <span>Share / Backup</span>
           </button>
 
-          {/* Add Task Button */}
+          {/* Apple-style "+ New Task" Button */}
           <button
             onClick={onOpenAddModal}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-gray-950 bg-emerald-400 hover:bg-emerald-300 rounded-lg shadow-[0_0_15px_rgba(52,211,153,0.3)] transition-all transform hover:-translate-y-0.5 active:translate-y-0"
+            className="flex items-center gap-1.5 px-4 py-1.5 text-xs font-semibold text-white bg-emerald-500 hover:bg-emerald-600 active:scale-95 rounded-xl shadow-[0_2px_12px_rgba(16,185,129,0.35)] transition-all duration-200"
           >
             <Plus className="w-4 h-4 stroke-[2.5]" />
             <span>New Task</span>
