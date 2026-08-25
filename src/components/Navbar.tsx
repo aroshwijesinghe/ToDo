@@ -6,7 +6,6 @@ interface NavbarProps {
   setViewMode: (mode: 'table' | 'terminal') => void;
   onOpenAddModal: () => void;
   onOpenExportModal: () => void;
-  onResetData: () => void;
   taskCount: number;
   theme: 'dark' | 'light';
   onToggleTheme: () => void;
@@ -17,7 +16,6 @@ export const Navbar: React.FC<NavbarProps> = ({
   setViewMode,
   onOpenAddModal,
   onOpenExportModal,
-  onResetData,
   taskCount,
   theme,
   onToggleTheme,
@@ -164,20 +162,6 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <span>Dark</span>
               </>
             )}
-          </button>
-
-          {/* Reset button */}
-          <button
-            onClick={onResetData}
-            title="Reset to default screenshot tasks"
-            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border transition-all ${
-              isDark
-                ? 'bg-[#1a1e24] hover:bg-[#232830] text-gray-300 hover:text-white border-gray-700/60'
-                : 'bg-white hover:bg-gray-100 text-gray-700 border-gray-300'
-            }`}
-          >
-            <RotateCcw className="w-3.5 h-3.5 text-gray-400" />
-            <span className="hidden md:inline">Reset</span>
           </button>
 
           {/* Export / Import */}
