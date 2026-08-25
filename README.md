@@ -1,69 +1,120 @@
-# Priority ToDo Application
+# 🎯 Priority ToDo — Smart Goal & Priority Management Matrix
 
-A high-performance, dark-themed Priority-Driven To-Do List and Matrix Manager web application built with **React 19**, **TypeScript**, **Tailwind CSS**, and **Vite**.
+A modern, high-performance **Priority-Driven To-Do & Execution Matrix** web application built with **React 19**, **TypeScript**, **Tailwind CSS v4**, and **Vite**.
 
-Modeled directly after modern developer productivity dashboards and the terminal task ranking matrix (`RANK | TASK | PRI | TIME | DESCRIPTION`).
-
----
-
-## ✨ Features
-
-- **Exact Priority Matrix Layout**: Displays tasks structured with:
-  - `RANK`: Numeric priority position / ordering.
-  - `TASK`: Task/Goal title with quick completion toggle.
-  - `PRI`: Dynamic priority score (0–100) with color-coded heat badges & progress bars.
-  - `TIME`: Time estimation (e.g., `6-8h`, `3-4h`, `30-60m`).
-  - `DESCRIPTION`: Clear summary of the objective.
-  - `STATUS`: `todo`, `in-progress`, `completed`.
-- **Preloaded with 35 Real-World Tasks**: Pre-seeded with the exact AI, ML, DevOps, and engineering tasks from the project specifications.
-- **Terminal & Table Dual Views**: Toggle between interactive graphical table and pure ASCII stdout terminal mode.
-- **Productivity Dashboard**: Real-time stats calculating total backlog effort in hours, active tasks, critical priority count, and progress rate.
-- **Interactive Controls**:
-  - Add, edit, delete, and reorder tasks (move up/down).
-  - Search across task names, categories, and descriptions.
-  - Filter by priority tier (Critical, High, Medium, Low) and category.
-  - Multi-column sorting (Rank, Priority Score, Task Name, Time).
-  - Confetti celebration animation upon completing tasks.
-- **Data Persistence & Portability**:
-  - Automatic `localStorage` persistence across sessions.
-  - JSON & CSV Export / Import.
-  - One-click reset to default sample dataset.
+Designed with **Apple (macOS & iOS) minimalist aesthetics**, **5 story-driven thematic environments**, **real-time cross-device cloud synchronization** (phone & laptop), **GitHub as a Database**, and **direct Supabase integration without a backend**.
 
 ---
 
-## 🚀 Getting Started
+## 🌟 Key Highlights & Features
 
-### 1. Install Dependencies
+### 1. 🍎 Apple Minimalist Design System
+- **Frosted Glass & Depth**: Translucent cards with `backdrop-blur-2xl`, micro-borders, and dynamic ambient glow cones.
+- **Weighted "toDo" Activity Card**: Progress calculated dynamically by $(\text{Priority} \times \text{Duration in Hours})$ with traveling light shimmer animations.
+- **iOS Segmented Controls & Micro-Interactions**: Smooth spring checkboxes, customizable priority heat badges, and elevation lift on hover.
+- **Mobile-First Experience**: Automatically adapts on phones into touch-friendly **Mobile Cards** and an **iOS Bottom Sheet Modal** with a floating action button (FAB).
+
+---
+
+### 2. 🎨 5 Story-Driven Thematic Worlds
+
+Switch between 5 distinct environments, each with tailored matching palettes for backgrounds, component cards, borders, and story taglines:
+
+| Theme | World Name | Story & Vibe | Accent & Palette |
+| :--- | :--- | :--- | :--- |
+| 🌌 **Dark** | **Deep Space Void** | *Zero-gravity engineering focus beneath a star-filled cosmos.* | Obsidian Glass (`#09090b` / `#141418`) with Starlight Emerald (`#10b981`) |
+| ❄️ **White** | **Ceramic Snow Peak** | *Crisp Alpine morning clarity for distraction-free execution.* | Ceramic Alabaster (`#f5f5f7` / `#ffffff`) with Sapphire Blue (`#0284c7`) |
+| 🔮 **Purple** | **Neon Cyber Nebula** | *Electric violet lasers slicing through an endless Tokyo nightscape.* | Velvet Midnight (`#0c0717` / `#180e2b`) with Neon Violet (`#a855f7`) |
+| 🌲 **Green** | **Emerald Matrix Oasis** | *A bioluminescent cyber-forest where digital lines sprout.* | Forest Abyss (`#041209` / `#0a2314`) with Matrix Green (`#22c55e`) |
+| 🌅 **Warm** | **Solar Flare Sunset** | *Warm amber coastal rays, roasted coffee, and golden momentum.* | Espresso Ember (`#140b05` / `#24140a`) with Tangerine Gold (`#f97316`) |
+
+---
+
+### 3. ☁️ Real-Time Cross-Device & Multi-Tab Synchronization
+- **Zero Data Loss Guarantee**: Local-first architecture stores data safely on your device first.
+- **Real-Time Pub/Sub with Server-Sent Events (SSE)**: Synchronizes changes across **Phones**, **Laptops**, and **Incognito / Private Tabs** in $<200\text{ms}$ without refreshing.
+- **Instant QR Code Pairing**: Scan the QR code with your phone camera to open and link your tasks instantly.
+- **Memorable Sync Rooms**: Choose any name (e.g. `arosh`) to connect across devices.
+
+---
+
+### 4. 🗄️ Multi-Backend Database Support
+
+#### 🐙 Option A: GitHub as a Database (`data/tasks.json`)
+- Automatically commits any task changes directly to `data/tasks.json` in your GitHub repository via the GitHub REST API.
+- 100% file-based, permanent commit history, and completely free forever.
+
+#### ⚡ Option B: Supabase (Direct from Frontend — No Backend Needed!)
+- Connect directly to your private **Supabase PostgreSQL database** using your Project URL and Anon API key without running any Node/Python backend servers.
+
+---
+
+## 📋 Task Matrix Data Schema
+
+Every task is organized under the engineering priority matrix format:
+
+```typescript
+interface TodoTask {
+  id: string;
+  rank: number;       // Execution sequence (e.g., 01, 02, 03)
+  task: string;       // Goal / Objective title
+  pri: number;        // Priority score (0 - 100)
+  time: string;       // Estimated duration (e.g. "3-4h", "30-60m")
+  description: string;// Core technical summary
+  status: 'todo' | 'in-progress' | 'completed';
+  category?: string;  // DevOps, Machine Learning, Backend, etc.
+  createdAt: string;
+  completedAt?: string;
+}
+```
+
+---
+
+## 🚀 Quick Start (Local Development)
+
+### 1. Clone the repository
+```bash
+git clone https://github.com/aroshwijesinghe/ToDo.git
+cd ToDo
+```
+
+### 2. Install dependencies
 ```bash
 npm install
 ```
 
-### 2. Run Development Server
+### 3. Start development server
 ```bash
 npm run dev
 ```
-Open `http://localhost:5173` in your browser.
+Open **`http://localhost:5173`** in your browser.
 
-### 3. Build for Production
+### 4. Build for Production
 ```bash
 npm run build
 ```
 
 ---
 
-## 📋 Data Schema
+## ⚡ Deployment (Vercel Ready)
 
-```typescript
-interface TodoTask {
-  id: string;
-  rank: number;
-  task: string;
-  pri: number; // 0 - 100
-  time: string; // e.g. "6-8h", "30-60m"
-  description: string;
-  status: 'todo' | 'in-progress' | 'completed';
-  category?: string;
-  createdAt: string;
-  completedAt?: string;
-}
-```
+This repository includes a pre-configured `vercel.json` for single-page routing and caching:
+
+1. Push your repository to GitHub.
+2. Sign in to [Vercel](https://vercel.com) and click **"Add New..." ➔ "Project"**.
+3. Select **`aroshwijesinghe/ToDo`** and click **Deploy**.
+
+---
+
+## 🛠️ Tech Stack
+
+- **Framework**: React 19 + TypeScript + Vite
+- **Styling**: Tailwind CSS v4 + Lucide React Icons
+- **Real-Time Sync**: Server-Sent Events (SSE) + Browser BroadcastChannel API
+- **Animations**: Canvas Confetti + CSS Keyframe Shimmer Animations
+- **Hosting**: Vercel Serverless Edge
+
+---
+
+## 📄 License
+MIT License © 2026 Arosh Wijesinghe
