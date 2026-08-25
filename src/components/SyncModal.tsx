@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { X, Smartphone, Laptop, RefreshCw, Copy, Check, QrCode, Cloud, ShieldCheck, Key, Database, Globe } from 'lucide-react';
+import { X, Smartphone, Laptop, RefreshCw, Copy, Check, QrCode, Cloud, ShieldCheck, Key, Database, Globe, Github, ExternalLink } from 'lucide-react';
 import { ThemeMode } from '../types/theme';
 import { THEME_CONFIGS } from '../utils/themeConfig';
 import { getSyncShareUrl, generateSyncKey, SupabaseConfig } from '../utils/cloudSync';
+import { GitHubConfig, commitTasksToGitHub } from '../utils/githubSync';
+import { TodoTask } from '../types/todo';
 
 interface SyncModalProps {
   isOpen: boolean;
@@ -14,6 +16,9 @@ interface SyncModalProps {
   lastSyncedAt: string | null;
   supabaseConfig: SupabaseConfig | null;
   onSaveSupabaseConfig: (config: SupabaseConfig | null) => void;
+  gitHubConfig: GitHubConfig | null;
+  onSaveGitHubConfig: (config: GitHubConfig | null) => void;
+  tasks: TodoTask[];
   theme?: ThemeMode;
 }
 
@@ -27,12 +32,20 @@ export const SyncModal: React.FC<SyncModalProps> = ({
   lastSyncedAt,
   supabaseConfig,
   onSaveSupabaseConfig,
+  gitHubConfig,
+  onSaveGitHubConfig,
+  tasks,
   theme = 'dark',
 }) => {
   const [customNameInput, setCustomNameInput] = useState('');
   const [copiedLink, setCopiedLink] = useState(false);
   const [copiedKey, setCopiedKey] = useState(false);
   const [showSupabase, setShowSupabase] = useState(false);
+  const [showGitHub, setShowGitHub] = useState(false);
+  const [ghToken, setGhToken] = useState(gitHubConfig?.token || '');
+  const [ghStatus, setGhStatus] = useState<string | null>(null);
+  const [isGhSyncing, setIsGhSyncing] = useState(false);
+
   const [sbUrl, setSbUrl] = useState(supabaseConfig?.url || '');
   const [sbKey, setSbKey] = useState(supabaseConfig?.anonKey || '');
 
@@ -84,6 +97,36 @@ export const SyncModal: React.FC<SyncModalProps> = ({
     setShowSupabase(false);
   };
 
+  const handleSaveGitHub = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const token = ghToken.trim();
+    if (!token) {
+      onSaveGitHubConfig(null);
+      setGhStatus('Disconnected GitHub database');
+      return;
+    }
+
+    const config: GitHubConfig = {
+      token,
+      owner: 'aroshwijesinghe',
+      repo: 'ToDo',
+      branch: 'main',
+      path: 'data/tasks.json',
+    };
+
+    setIsGhSyncing(true);
+    setGhStatus('Committing tasks to GitHub data/tasks.json...');
+    const result = await commitTasksToGitHub(config, tasks);
+    setIsGhSyncing(false);
+
+    if (result.success) {
+      onSaveGitHubConfig(config);
+      setGhStatus('✓ Successfully connected & committed to GitHub!');
+    } else {
+      setGhStatus(`❌ Error: ${result.error}`);
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/70 backdrop-blur-md animate-in fade-in duration-200">
       <div
@@ -100,10 +143,10 @@ export const SyncModal: React.FC<SyncModalProps> = ({
             </div>
             <div>
               <h3 className="text-base font-bold tracking-tight">
-                Cross-Device Cloud Database
+                Cross-Device Cloud &amp; GitHub Database
               </h3>
               <p className={`text-[11px] font-medium ${themeConfig.classes.textMuted}`}>
-                Auto-syncs across Phone, Laptop &amp; All Tabs
+                Auto-syncs across Phone, Laptop, Incognito &amp; GitHub
               </p>
             </div>
           </div>
@@ -224,7 +267,7 @@ export const SyncModal: React.FC<SyncModalProps> = ({
               {syncKey ? 'Switch or Connect to Another Sync Name' : 'Set Your Personal Cloud Sync Name'}
             </p>
             <p className={`text-[11px] leading-relaxed ${themeConfig.classes.textSecondary}`}>
-              Pick any easy memorable name (e.g. <strong className={themeConfig.classes.textPrimary}>arosh</strong> or <strong className={themeConfig.classes.textPrimary}>my-goals</strong>). When you open the app on your phone or new tab, just type this name to load everything instantly.
+              Pick any easy memorable name (e.g. <strong className={themeConfig.classes.textPrimary}>arosh</strong> or <strong className={themeConfig.classes.textPrimary}>my-goals</strong>). When you open the app on your phone or incognito tab, just type this name to load everything instantly.
             </p>
 
             <form onSubmit={handleConnectCustomName} className="flex gap-2">
@@ -255,7 +298,97 @@ export const SyncModal: React.FC<SyncModalProps> = ({
             </div>
           </div>
 
-          {/* Optional Supabase Database Connector for Advanced Cloud Storage */}
+          {/* 🐙 GITHUB AS A DATABASE SECTION */}
+          <div className="border-t pt-3 border-white/10">
+            <button
+              type="button"
+              onClick={() => setShowGitHub(prev => !prev)}
+              className={`w-full flex items-center justify-between p-3 rounded-xl border text-xs font-semibold ${themeConfig.classes.badgeBg} ${themeConfig.classes.cardBorder} hover:scale-[1.01] transition-transform`}
+            >
+              <span className="flex items-center gap-2">
+                <Github className="w-4 h-4 text-white" />
+                <span>🐙 GitHub as a Database (<code>data/tasks.json</code>)</span>
+                {gitHubConfig?.token && (
+                  <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-bold">
+                    Connected
+                  </span>
+                )}
+              </span>
+              <span>{showGitHub ? '▲' : '▼'}</span>
+            </button>
+
+            {showGitHub && (
+              <form onSubmit={handleSaveGitHub} className="p-3.5 mt-2 rounded-2xl border space-y-3 bg-black/30 border-white/10">
+                <div className="space-y-1">
+                  <p className="text-[11px] font-bold flex items-center gap-1.5 text-white">
+                    <span>Auto-commit directly into your repository:</span>
+                    <span className="font-mono text-emerald-400">aroshwijesinghe/ToDo</span>
+                  </p>
+                  <p className="text-[10px] opacity-75">
+                    Any change you make will automatically commit to <code className="text-emerald-400">data/tasks.json</code> on GitHub!
+                  </p>
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-[10px] uppercase font-bold text-slate-400">
+                      GitHub Personal Access Token
+                    </label>
+                    <a
+                      href="https://github.com/settings/tokens/new?scopes=repo&description=ToDo+Database+Sync"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-[10px] text-emerald-400 hover:underline flex items-center gap-1 font-medium"
+                    >
+                      <span>Create Token (1 min)</span>
+                      <ExternalLink className="w-2.5 h-2.5" />
+                    </a>
+                  </div>
+                  <input
+                    type="password"
+                    value={ghToken}
+                    onChange={(e) => setGhToken(e.target.value)}
+                    placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
+                    className="w-full px-3 py-2 rounded-xl border border-white/10 bg-black/50 text-xs text-white font-mono"
+                  />
+                  <p className="text-[10px] opacity-50 mt-1">
+                    Needs `repo` permission so it can update `data/tasks.json`. Stored safely only on your device.
+                  </p>
+                </div>
+
+                {ghStatus && (
+                  <div className={`p-2 rounded-xl text-[11px] font-medium border ${ghStatus.startsWith('✓') ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' : 'bg-rose-500/10 text-rose-400 border-rose-500/30'}`}>
+                    {ghStatus}
+                  </div>
+                )}
+
+                <div className="flex justify-end gap-2 pt-1">
+                  {gitHubConfig?.token && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onSaveGitHubConfig(null);
+                        setGhToken('');
+                        setGhStatus('Disconnected GitHub database');
+                      }}
+                      className="px-3 py-1.5 text-xs text-rose-400 bg-rose-500/10 rounded-xl"
+                    >
+                      Disconnect GitHub
+                    </button>
+                  )}
+                  <button
+                    type="submit"
+                    disabled={isGhSyncing}
+                    className={`px-4 py-1.5 text-xs font-bold rounded-xl ${themeConfig.classes.accentBtn}`}
+                  >
+                    {isGhSyncing ? 'Connecting...' : gitHubConfig?.token ? 'Update GitHub Token' : 'Connect & Commit'}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+
+          {/* Optional Supabase Database Connector */}
           <div className="border-t pt-3 border-white/10">
             <button
               type="button"
@@ -272,7 +405,7 @@ export const SyncModal: React.FC<SyncModalProps> = ({
             {showSupabase && (
               <form onSubmit={handleSaveSupabase} className="p-3 mt-2 rounded-xl border space-y-2.5 bg-black/20 border-white/10">
                 <p className="text-[11px] opacity-70">
-                  Connect your own private Supabase PostgreSQL project for dedicated enterprise storage:
+                  Connect your own private Supabase PostgreSQL project:
                 </p>
                 <div>
                   <label className="block text-[10px] uppercase font-bold text-slate-400 mb-1">Project URL</label>
