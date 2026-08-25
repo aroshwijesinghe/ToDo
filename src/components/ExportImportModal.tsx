@@ -1,6 +1,8 @@
 import React, { useState, useRef } from 'react';
 import { X, Download, Upload, FileText, CheckCircle2, AlertCircle } from 'lucide-react';
 import { TodoTask } from '../types/todo';
+import { ThemeMode } from '../types/theme';
+import { THEME_CONFIGS } from '../utils/themeConfig';
 import { exportToCSV, exportToJSON } from '../utils/helpers';
 
 interface ExportImportModalProps {
@@ -8,7 +10,7 @@ interface ExportImportModalProps {
   onClose: () => void;
   tasks: TodoTask[];
   onImportTasks: (tasks: TodoTask[]) => void;
-  isDark?: boolean;
+  theme?: ThemeMode;
 }
 
 export const ExportImportModal: React.FC<ExportImportModalProps> = ({
@@ -16,10 +18,12 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
   onClose,
   tasks,
   onImportTasks,
-  isDark = true,
+  theme = 'dark',
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [importStatus, setImportStatus] = useState<{ success?: boolean; message?: string }>({});
+
+  const themeConfig = THEME_CONFIGS[theme];
 
   if (!isOpen) return null;
 
@@ -52,27 +56,17 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-200">
       <div
-        className={`border rounded-3xl w-full max-w-md overflow-hidden shadow-2xl transition-all ${
-          isDark
-            ? 'bg-[#1c1c1e] border-white/[0.12] text-white shadow-[0_20px_60px_rgba(0,0,0,0.8)]'
-            : 'bg-white/95 border-black/[0.08] text-slate-900 shadow-[0_20px_60px_rgba(0,0,0,0.15)]'
-        }`}
+        className={`border rounded-3xl w-full max-w-md overflow-hidden shadow-2xl transition-all ${themeConfig.classes.cardBg} ${themeConfig.classes.cardBorder} ${themeConfig.classes.textPrimary}`}
       >
-        {/* Apple Modal Header */}
-        <div
-          className={`flex items-center justify-between px-6 py-4.5 border-b ${
-            isDark ? 'bg-white/[0.02] border-white/[0.08]' : 'bg-black/[0.02] border-black/[0.05]'
-          }`}
-        >
+        {/* Header */}
+        <div className={`flex items-center justify-between px-6 py-4.5 border-b ${themeConfig.classes.tableHeaderBg}`}>
           <h3 className="text-base font-semibold tracking-tight flex items-center gap-2">
-            <FileText className="w-4 h-4 text-emerald-500" />
+            <FileText className="w-4 h-4" style={{ color: themeConfig.accentHex }} />
             Share &amp; Backup
           </h3>
           <button
             onClick={onClose}
-            className={`w-7 h-7 rounded-full flex items-center justify-center transition-colors ${
-              isDark ? 'bg-white/10 hover:bg-white/20 text-white/80' : 'bg-black/5 hover:bg-black/10 text-slate-700'
-            }`}
+            className="w-7 h-7 rounded-full flex items-center justify-center bg-white/10 hover:bg-white/20 transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
@@ -99,37 +93,29 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
 
           {/* Export Options */}
           <div>
-            <h4 className={`text-xs uppercase font-semibold tracking-wider mb-2.5 ${isDark ? 'text-white/60' : 'text-slate-500'}`}>
+            <h4 className={`text-xs uppercase font-semibold tracking-wider mb-2.5 ${themeConfig.classes.textMuted}`}>
               Export Dataset ({tasks.length} objectives)
             </h4>
             <div className="grid grid-cols-2 gap-3">
               <button
                 onClick={() => exportToJSON(tasks)}
-                className={`flex items-center justify-center gap-2 py-3 px-3.5 border rounded-2xl text-xs font-medium transition-all ${
-                  isDark
-                    ? 'bg-white/[0.06] hover:bg-white/[0.12] border-white/[0.08] text-white'
-                    : 'bg-black/[0.03] hover:bg-black/[0.06] border-black/[0.06] text-slate-800'
-                }`}
+                className={`flex items-center justify-center gap-2 py-3 px-3.5 border rounded-2xl text-xs font-medium transition-all hover:scale-105 active:scale-95 ${themeConfig.classes.inputBg} ${themeConfig.classes.cardBorder} ${themeConfig.classes.textPrimary}`}
               >
-                <Download className="w-4 h-4 text-emerald-500" />
+                <Download className="w-4 h-4" style={{ color: themeConfig.accentHex }} />
                 Export JSON
               </button>
               <button
                 onClick={() => exportToCSV(tasks)}
-                className={`flex items-center justify-center gap-2 py-3 px-3.5 border rounded-2xl text-xs font-medium transition-all ${
-                  isDark
-                    ? 'bg-white/[0.06] hover:bg-white/[0.12] border-white/[0.08] text-white'
-                    : 'bg-black/[0.03] hover:bg-black/[0.06] border-black/[0.06] text-slate-800'
-                }`}
+                className={`flex items-center justify-center gap-2 py-3 px-3.5 border rounded-2xl text-xs font-medium transition-all hover:scale-105 active:scale-95 ${themeConfig.classes.inputBg} ${themeConfig.classes.cardBorder} ${themeConfig.classes.textPrimary}`}
               >
-                <Download className="w-4 h-4 text-emerald-500" />
+                <Download className="w-4 h-4" style={{ color: themeConfig.accentHex }} />
                 Export CSV
               </button>
             </div>
           </div>
 
-          <div className={`border-t pt-4 ${isDark ? 'border-white/[0.08]' : 'border-black/[0.06]'}`}>
-            <h4 className={`text-xs uppercase font-semibold tracking-wider mb-2.5 ${isDark ? 'text-white/60' : 'text-slate-500'}`}>
+          <div className={`border-t pt-4 ${themeConfig.classes.cardBorder}`}>
+            <h4 className={`text-xs uppercase font-semibold tracking-wider mb-2.5 ${themeConfig.classes.textMuted}`}>
               Restore from JSON File
             </h4>
             <input
@@ -141,7 +127,13 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
             />
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 rounded-2xl text-xs text-emerald-500 font-semibold transition-all active:scale-98"
+              className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-2xl text-xs font-semibold transition-all hover:scale-102 active:scale-98"
+              style={{
+                backgroundColor: `${themeConfig.accentHex}20`,
+                borderColor: `${themeConfig.accentHex}40`,
+                color: themeConfig.accentHex,
+                borderWidth: '1px'
+              }}
             >
               <Upload className="w-4 h-4" />
               Select File to Import
