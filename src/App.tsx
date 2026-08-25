@@ -11,8 +11,19 @@ import { INITIAL_TASKS } from './data/initialTasks';
 import { TodoTask, FilterState, SortField, SortOrder } from './types/todo';
 
 const STORAGE_KEY = 'priority_todo_tasks_v1';
+const THEME_STORAGE_KEY = 'priority_todo_theme_v1';
 
 export function App() {
+  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
+    try {
+      const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+      if (savedTheme === 'light' || savedTheme === 'dark') return savedTheme;
+    } catch (e) {
+      console.error('Failed to read theme', e);
+    }
+    return 'dark';
+  });
+
   const [tasks, setTasks] = useState<TodoTask[]>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
@@ -41,6 +52,22 @@ export function App() {
   const [sortField, setSortField] = useState<SortField>('rank');
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
 
+  const isDark = theme === 'dark';
+
+  // Apply theme to html root
+  useEffect(() => {
+    try {
+      localStorage.setItem(THEME_STORAGE_KEY, theme);
+      if (theme === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    } catch (e) {
+      console.error('Failed to save theme', e);
+    }
+  }, [theme]);
+
   // Save to localStorage
   useEffect(() => {
     try {
@@ -49,6 +76,10 @@ export function App() {
       console.error('Failed to save tasks', e);
     }
   }, [tasks]);
+
+  const toggleTheme = () => {
+    setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
+  };
 
   // Extract unique categories
   const categories = useMemo(() => {
@@ -122,12 +153,12 @@ export function App() {
           if (t.status === 'todo') nextStatus = 'in-progress';
           else if (t.status === 'in-progress') {
             nextStatus = 'completed';
-            // Trigger celebratory confetti!
+            // Confetti celebration
             confetti({
-              particleCount: 50,
-              spread: 60,
-              origin: { y: 0.8 },
-              colors: ['#34d399', '#10b981', '#059669', '#6ee7b7']
+              particleCount: 60,
+              spread: 70,
+              origin: { y: 0.75 },
+              colors: ['#34d399', '#10b981', '#059669', '#38bdf8', '#fbbf24']
             });
           } else {
             nextStatus = 'todo';
@@ -183,7 +214,6 @@ export function App() {
       const temp = updated[index];
       updated[index] = updated[index - 1];
       updated[index - 1] = temp;
-      // Re-assign ranks
       return updated.map((t, idx) => ({ ...t, rank: idx + 1 }));
     });
   };
@@ -195,7 +225,6 @@ export function App() {
       const temp = updated[index];
       updated[index] = updated[index + 1];
       updated[index + 1] = temp;
-      // Re-assign ranks
       return updated.map((t, idx) => ({ ...t, rank: idx + 1 }));
     });
   };
@@ -211,7 +240,11 @@ export function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#121417] text-gray-100 flex flex-col font-sans">
+    <div
+      className={`min-h-screen flex flex-col font-sans transition-colors duration-200 ${
+        isDark ? 'bg-[#121417] text-gray-100' : 'bg-slate-50 text-slate-900'
+      }`}
+    >
       <Navbar
         viewMode={viewMode}
         setViewMode={setViewMode}
@@ -222,11 +255,13 @@ export function App() {
         onOpenExportModal={() => setIsExportModalOpen(true)}
         onResetData={handleResetData}
         taskCount={tasks.length}
+        theme={theme}
+        onToggleTheme={toggleTheme}
       />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {/* Top metrics banner */}
-        <StatsBanner tasks={tasks} />
+        {/* Top metrics banner with large animated "toDo" card */}
+        <StatsBanner tasks={tasks} isDark={isDark} />
 
         {/* Search, Filter & Sort Controls */}
         <FilterBar
@@ -237,6 +272,7 @@ export function App() {
           sortOrder={sortOrder}
           setSortOrder={setSortOrder}
           categories={categories}
+          isDark={isDark}
         />
 
         {/* View content: Table or Terminal */}
@@ -255,9 +291,10 @@ export function App() {
             setSortField={setSortField}
             sortOrder={sortOrder}
             setSortOrder={setSortOrder}
+            isDark={isDark}
           />
         ) : (
-          <TerminalView tasks={filteredTasks} />
+          <TerminalView tasks={filteredTasks} isDark={isDark} />
         )}
       </main>
 
@@ -271,6 +308,7 @@ export function App() {
         onSave={handleSaveTask}
         initialData={editingTask}
         defaultRank={tasks.length + 1}
+        isDark={isDark}
       />
 
       <ExportImportModal
@@ -278,10 +316,15 @@ export function App() {
         onClose={() => setIsExportModalOpen(false)}
         tasks={tasks}
         onImportTasks={handleImportTasks}
+        isDark={isDark}
       />
 
-      <footer className="py-4 border-t border-gray-800/60 text-center text-xs font-mono text-gray-500">
-        Priority ToDo Dashboard • Built with React &amp; Tailwind CSS
+      <footer
+        className={`py-4 border-t text-center text-xs font-mono transition-colors ${
+          isDark ? 'border-gray-800/60 text-gray-500' : 'border-gray-200 text-gray-400 bg-white'
+        }`}
+      >
+        Priority ToDo Dashboard • Dark &amp; Light Mode • Built with React &amp; Tailwind CSS
       </footer>
     </div>
   );

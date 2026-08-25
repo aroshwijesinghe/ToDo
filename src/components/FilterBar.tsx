@@ -10,6 +10,7 @@ interface FilterBarProps {
   sortOrder: SortOrder;
   setSortOrder: (order: SortOrder) => void;
   categories: string[];
+  isDark?: boolean;
 }
 
 export const FilterBar: React.FC<FilterBarProps> = ({
@@ -20,6 +21,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
   sortOrder,
   setSortOrder,
   categories,
+  isDark = true,
 }) => {
   const toggleSort = (field: SortField) => {
     if (sortField === field) {
@@ -46,7 +48,11 @@ export const FilterBar: React.FC<FilterBarProps> = ({
     filter.category !== 'all';
 
   return (
-    <div className="bg-[#181b20] border border-gray-800/80 rounded-xl p-3.5 mb-5 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+    <div
+      className={`border rounded-xl p-3.5 mb-5 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 transition-colors ${
+        isDark ? 'bg-[#181b20] border-gray-800/80' : 'bg-white border-gray-200 shadow-sm'
+      }`}
+    >
       {/* Search Input */}
       <div className="relative flex-1">
         <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -55,12 +61,16 @@ export const FilterBar: React.FC<FilterBarProps> = ({
           value={filter.search}
           onChange={(e) => setFilter(prev => ({ ...prev, search: e.target.value }))}
           placeholder="Search by task name, description, or keyword..."
-          className="w-full pl-9 pr-8 py-2 bg-[#121417] border border-gray-800 focus:border-emerald-500/50 rounded-lg text-xs font-mono text-gray-200 placeholder-gray-500 focus:outline-none transition-all"
+          className={`w-full pl-9 pr-8 py-2 border rounded-lg text-xs font-mono placeholder-gray-400 focus:outline-none transition-all ${
+            isDark
+              ? 'bg-[#121417] border-gray-800 focus:border-emerald-500/50 text-gray-200'
+              : 'bg-gray-50 border-gray-300 focus:border-emerald-500 text-gray-900'
+          }`}
         />
         {filter.search && (
           <button
             onClick={() => setFilter(prev => ({ ...prev, search: '' }))}
-            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-200"
+            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
           >
             <X className="w-3.5 h-3.5" />
           </button>
@@ -70,15 +80,21 @@ export const FilterBar: React.FC<FilterBarProps> = ({
       {/* Filters & Sorting Controls */}
       <div className="flex flex-wrap items-center gap-2">
         {/* Status Filter */}
-        <div className="flex items-center bg-[#121417] border border-gray-800 rounded-lg p-0.5 text-xs font-mono">
+        <div
+          className={`flex items-center border rounded-lg p-0.5 text-xs font-mono ${
+            isDark ? 'bg-[#121417] border-gray-800' : 'bg-gray-100 border-gray-200'
+          }`}
+        >
           {(['all', 'todo', 'in-progress', 'completed'] as const).map((st) => (
             <button
               key={st}
               onClick={() => setFilter(prev => ({ ...prev, status: st as 'all' | TaskStatus }))}
               className={`px-2.5 py-1 rounded-md capitalize transition-all ${
                 filter.status === st
-                  ? 'bg-emerald-500 text-gray-950 font-bold'
-                  : 'text-gray-400 hover:text-gray-200'
+                  ? 'bg-emerald-500 text-gray-950 font-bold shadow-sm'
+                  : isDark
+                  ? 'text-gray-400 hover:text-gray-200'
+                  : 'text-gray-600 hover:text-gray-900'
               }`}
             >
               {st === 'in-progress' ? 'Active' : st}
@@ -90,7 +106,11 @@ export const FilterBar: React.FC<FilterBarProps> = ({
         <select
           value={filter.priorityTier}
           onChange={(e) => setFilter(prev => ({ ...prev, priorityTier: e.target.value as FilterState['priorityTier'] }))}
-          className="bg-[#121417] border border-gray-800 text-gray-300 text-xs font-mono rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-emerald-500/50"
+          className={`border text-xs font-mono rounded-lg px-2.5 py-1.5 focus:outline-none ${
+            isDark
+              ? 'bg-[#121417] border-gray-800 text-gray-300 focus:border-emerald-500/50'
+              : 'bg-gray-50 border-gray-300 text-gray-800 focus:border-emerald-500'
+          }`}
         >
           <option value="all">All Priorities</option>
           <option value="critical">Critical (85-100)</option>
@@ -104,7 +124,11 @@ export const FilterBar: React.FC<FilterBarProps> = ({
           <select
             value={filter.category}
             onChange={(e) => setFilter(prev => ({ ...prev, category: e.target.value }))}
-            className="bg-[#121417] border border-gray-800 text-gray-300 text-xs font-mono rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-emerald-500/50"
+            className={`border text-xs font-mono rounded-lg px-2.5 py-1.5 focus:outline-none ${
+              isDark
+                ? 'bg-[#121417] border-gray-800 text-gray-300 focus:border-emerald-500/50'
+                : 'bg-gray-50 border-gray-300 text-gray-800 focus:border-emerald-500'
+            }`}
           >
             <option value="all">All Categories</option>
             {categories.map((c) => (
@@ -120,8 +144,12 @@ export const FilterBar: React.FC<FilterBarProps> = ({
           onClick={() => toggleSort('pri')}
           className={`flex items-center gap-1 px-2.5 py-1.5 text-xs font-mono rounded-lg border transition-all ${
             sortField === 'pri'
-              ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-400 font-semibold'
-              : 'bg-[#121417] border-gray-800 text-gray-400 hover:text-gray-200'
+              ? isDark
+                ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-400 font-semibold'
+                : 'bg-emerald-50 border-emerald-300 text-emerald-700 font-semibold'
+              : isDark
+              ? 'bg-[#121417] border-gray-800 text-gray-400 hover:text-gray-200'
+              : 'bg-gray-50 border-gray-300 text-gray-600 hover:text-gray-900'
           }`}
           title="Sort by Priority Score"
         >
@@ -134,8 +162,12 @@ export const FilterBar: React.FC<FilterBarProps> = ({
           onClick={() => toggleSort('rank')}
           className={`flex items-center gap-1 px-2.5 py-1.5 text-xs font-mono rounded-lg border transition-all ${
             sortField === 'rank'
-              ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-400 font-semibold'
-              : 'bg-[#121417] border-gray-800 text-gray-400 hover:text-gray-200'
+              ? isDark
+                ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-400 font-semibold'
+                : 'bg-emerald-50 border-emerald-300 text-emerald-700 font-semibold'
+              : isDark
+              ? 'bg-[#121417] border-gray-800 text-gray-400 hover:text-gray-200'
+              : 'bg-gray-50 border-gray-300 text-gray-600 hover:text-gray-900'
           }`}
           title="Sort by Rank"
         >
@@ -148,10 +180,10 @@ export const FilterBar: React.FC<FilterBarProps> = ({
         {hasActiveFilters && (
           <button
             onClick={clearFilters}
-            className="flex items-center gap-1 text-xs text-rose-400 hover:text-rose-300 px-2 py-1 bg-rose-500/10 border border-rose-500/30 rounded-lg transition-all"
+            className="flex items-center gap-1 text-xs text-rose-500 hover:text-rose-600 px-2 py-1 bg-rose-500/10 border border-rose-500/30 rounded-lg transition-all"
           >
             <Filter className="w-3 h-3" />
-            <span>Reset Filters</span>
+            <span>Reset</span>
           </button>
         )}
       </div>

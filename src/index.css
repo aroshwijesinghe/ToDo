@@ -2,7 +2,7 @@
 
 @layer base {
   body {
-    @apply bg-[#121417] text-gray-100 font-sans antialiased min-h-screen selection:bg-emerald-500/30 selection:text-emerald-300;
+    @apply antialiased min-h-screen transition-colors duration-200;
   }
 }
 
@@ -12,21 +12,37 @@
   height: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: #181b20;
+  background: transparent;
 }
-::-webkit-scrollbar-thumb {
+.dark ::-webkit-scrollbar-thumb {
   background: #2d333b;
   border-radius: 4px;
 }
-::-webkit-scrollbar-thumb:hover {
+.dark ::-webkit-scrollbar-thumb:hover {
   background: #3e4652;
+}
+:not(.dark) ::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+:not(.dark) ::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+@keyframes shimmer-move {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+
+.animate-shimmer {
+  animation: shimmer-move 2.5s infinite linear;
 }
 
 @keyframes pulse-glow {
-  0%, 100% { opacity: 0.8; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.03); }
+  0%, 100% { opacity: 0.8; filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.4)); }
+  50% { opacity: 1; filter: drop-shadow(0 0 16px rgba(16, 185, 129, 0.7)); }
 }
 
-.animate-glow {
-  animation: pulse-glow 3s infinite ease-in-out;
+.animate-progress-glow {
+  animation: pulse-glow 2.5s infinite ease-in-out;
 }
