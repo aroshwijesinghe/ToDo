@@ -124,16 +124,17 @@ export function App() {
     }).catch(() => {});
   }, []);
 
-  // 2. Poll for remote changes — ONLY when there are NO pending local commits
+  // 2. Poll for remote changes — ONLY when no modals are open and no pending commits
   useEffect(() => {
     const pollRemote = async () => {
+      // Never poll while user is actively editing in a modal
+      if (isAddModalOpen || isExportModalOpen) return;
       // Never overwrite if we have uncommitted local changes
       if (pendingCommitRef.current || commitInProgressRef.current) return;
 
       try {
         const remoteTasks = await loadTasksFromGitHub();
         if (remoteTasks && Array.isArray(remoteTasks) && remoteTasks.length > 0) {
-          // Check if remote is different from what we currently have
           const currentLocal = localStorage.getItem(STORAGE_KEY);
           const remoteStr = JSON.stringify(remoteTasks);
           if (currentLocal !== remoteStr) {
@@ -146,7 +147,7 @@ export function App() {
 
     const interval = setInterval(pollRemote, 15000);
     const handleFocus = () => {
-      if (!pendingCommitRef.current && !commitInProgressRef.current) {
+      if (!isAddModalOpen && !isExportModalOpen && !pendingCommitRef.current && !commitInProgressRef.current) {
         pollRemote();
       }
     };
@@ -156,7 +157,7 @@ export function App() {
       clearInterval(interval);
       window.removeEventListener('focus', handleFocus);
     };
-  }, []);
+  }, [isAddModalOpen, isExportModalOpen]);
 
   // 3. Cross-Tab Sync via BroadcastChannel & Storage Event
   useEffect(() => {
