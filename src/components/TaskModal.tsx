@@ -41,7 +41,6 @@ export const TaskModal: React.FC<TaskModalProps> = ({
   const [showAddCatInput, setShowAddCatInput] = useState(false);
 
   const themeConfig = THEME_CONFIGS[theme];
-  const isWhite = theme === 'white';
 
   useEffect(() => {
     if (initialData) {
@@ -111,12 +110,17 @@ export const TaskModal: React.FC<TaskModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/65 backdrop-blur-md animate-in fade-in duration-200">
       <div
-        className={`border rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl transition-all max-h-[90vh] flex flex-col ${themeConfig.classes.cardBg} ${themeConfig.classes.cardBorder} ${themeConfig.classes.textPrimary}`}
+        className={`border-t sm:border rounded-t-3xl sm:rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl transition-all max-h-[92vh] flex flex-col ${themeConfig.classes.cardBg} ${themeConfig.classes.cardBorder} ${themeConfig.classes.textPrimary}`}
       >
+        {/* Mobile Pull Bar Handle */}
+        <div className="flex justify-center pt-2.5 pb-1 sm:hidden">
+          <div className="w-12 h-1.5 rounded-full bg-white/20 dark:bg-white/20" />
+        </div>
+
         {/* Modal Header */}
-        <div className={`flex items-center justify-between px-6 py-4.5 border-b shrink-0 ${themeConfig.classes.tableHeaderBg}`}>
+        <div className={`flex items-center justify-between px-5 sm:px-6 py-4 border-b shrink-0 ${themeConfig.classes.tableHeaderBg}`}>
           <div className="flex items-center gap-2.5">
             <div
               className="w-8 h-8 rounded-xl flex items-center justify-center text-white"
@@ -137,10 +141,10 @@ export const TaskModal: React.FC<TaskModalProps> = ({
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4.5 overflow-y-auto flex-1">
+        <form onSubmit={handleSubmit} className="p-5 sm:p-6 space-y-4 overflow-y-auto flex-1 text-xs">
           {/* Task Name */}
           <div>
-            <label className={`block text-xs font-semibold uppercase tracking-wider mb-1.5 ${themeConfig.classes.textMuted}`}>
+            <label className={`block font-semibold uppercase tracking-wider mb-1.5 ${themeConfig.classes.textMuted}`}>
               Objective Title *
             </label>
             <input
@@ -149,13 +153,13 @@ export const TaskModal: React.FC<TaskModalProps> = ({
               value={task}
               onChange={(e) => setTask(e.target.value)}
               placeholder="e.g. CI/CD Pipeline, Docker Containerization..."
-              className={`w-full px-4 py-2.5 border rounded-xl text-sm focus:outline-none transition-all ${themeConfig.classes.inputBg} ${themeConfig.classes.inputBorder} ${themeConfig.classes.textPrimary}`}
+              className={`w-full px-3.5 sm:px-4 py-2.5 border rounded-xl text-xs sm:text-sm focus:outline-none transition-all ${themeConfig.classes.inputBg} ${themeConfig.classes.inputBorder} ${themeConfig.classes.textPrimary}`}
             />
           </div>
 
           {/* Priority Slider */}
           <div>
-            <div className="flex justify-between items-center mb-1.5 text-xs">
+            <div className="flex justify-between items-center mb-1.5">
               <label className={`font-semibold uppercase tracking-wider flex items-center gap-2 ${themeConfig.classes.textMuted}`}>
                 Priority Score:
                 <span
@@ -175,15 +179,15 @@ export const TaskModal: React.FC<TaskModalProps> = ({
               max="100"
               value={pri}
               onChange={(e) => setPri(Number(e.target.value))}
-              className="w-full cursor-pointer h-2 rounded-full bg-black/10 dark:bg-white/10"
+              className="w-full cursor-pointer h-2.5 rounded-full bg-black/10 dark:bg-white/10"
               style={{ accentColor: themeConfig.accentHex }}
             />
           </div>
 
           {/* Time Estimate & Rank */}
-          <div className="grid grid-cols-2 gap-3.5">
+          <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className={`block text-xs font-semibold uppercase tracking-wider mb-1.5 flex items-center gap-1 ${themeConfig.classes.textMuted}`}>
+              <label className={`block font-semibold uppercase tracking-wider mb-1.5 flex items-center gap-1 ${themeConfig.classes.textMuted}`}>
                 <Clock className="w-3.5 h-3.5 opacity-60" />
                 Time Estimate
               </label>
@@ -192,15 +196,15 @@ export const TaskModal: React.FC<TaskModalProps> = ({
                 value={time}
                 onChange={(e) => setTime(e.target.value)}
                 placeholder="e.g. 3-4h, 30-60m"
-                className={`w-full px-3.5 py-2 border rounded-xl text-xs focus:outline-none ${themeConfig.classes.inputBg} ${themeConfig.classes.inputBorder} ${themeConfig.classes.textPrimary}`}
+                className={`w-full px-3 py-2 border rounded-xl text-xs focus:outline-none ${themeConfig.classes.inputBg} ${themeConfig.classes.inputBorder} ${themeConfig.classes.textPrimary}`}
               />
               <div className="flex flex-wrap gap-1 mt-1.5">
-                {TIME_PRESETS.slice(0, 4).map((p) => (
+                {TIME_PRESETS.slice(0, 3).map((p) => (
                   <button
                     key={p}
                     type="button"
                     onClick={() => setTime(p)}
-                    className={`text-[10px] font-medium px-2 py-0.5 rounded-full border transition-colors ${themeConfig.classes.badgeBg} ${themeConfig.classes.cardBorder} ${themeConfig.classes.textSecondary} hover:opacity-100`}
+                    className={`text-[10px] font-medium px-2 py-0.5 rounded-full border transition-colors ${themeConfig.classes.badgeBg} ${themeConfig.classes.cardBorder} ${themeConfig.classes.textSecondary}`}
                   >
                     {p}
                   </button>
@@ -209,7 +213,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
             </div>
 
             <div>
-              <label className={`block text-xs font-semibold uppercase tracking-wider mb-1.5 ${themeConfig.classes.textMuted}`}>
+              <label className={`block font-semibold uppercase tracking-wider mb-1.5 ${themeConfig.classes.textMuted}`}>
                 Rank Position
               </label>
               <input
@@ -217,20 +221,20 @@ export const TaskModal: React.FC<TaskModalProps> = ({
                 min="1"
                 value={rank}
                 onChange={(e) => setRank(Number(e.target.value))}
-                className={`w-full px-3.5 py-2 border rounded-xl text-xs focus:outline-none ${themeConfig.classes.inputBg} ${themeConfig.classes.inputBorder} ${themeConfig.classes.textPrimary}`}
+                className={`w-full px-3 py-2 border rounded-xl text-xs focus:outline-none ${themeConfig.classes.inputBg} ${themeConfig.classes.inputBorder} ${themeConfig.classes.textPrimary}`}
               />
             </div>
           </div>
 
           {/* Status */}
           <div>
-            <label className={`block text-xs font-semibold uppercase tracking-wider mb-1.5 ${themeConfig.classes.textMuted}`}>
+            <label className={`block font-semibold uppercase tracking-wider mb-1.5 ${themeConfig.classes.textMuted}`}>
               Status
             </label>
             <select
               value={status}
               onChange={(e) => setStatus(e.target.value as TaskStatus)}
-              className={`w-full px-3.5 py-2 border rounded-xl text-xs focus:outline-none ${themeConfig.classes.inputBg} ${themeConfig.classes.inputBorder} ${themeConfig.classes.textPrimary}`}
+              className={`w-full px-3 py-2.5 border rounded-xl text-xs focus:outline-none ${themeConfig.classes.inputBg} ${themeConfig.classes.inputBorder} ${themeConfig.classes.textPrimary}`}
             >
               <option value="todo">To Do (Pending)</option>
               <option value="in-progress">In Progress</option>
@@ -241,7 +245,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
           {/* CATEGORY SECTION */}
           <div className={`space-y-2 border-t pt-3 ${themeConfig.classes.cardBorder}`}>
             <div className="flex items-center justify-between">
-              <label className={`text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5 ${themeConfig.classes.textMuted}`}>
+              <label className={`font-semibold uppercase tracking-wider flex items-center gap-1.5 ${themeConfig.classes.textMuted}`}>
                 <Tag className="w-3.5 h-3.5 opacity-60" />
                 Category: <span style={{ color: themeConfig.accentHex }} className="capitalize font-bold">({category || 'None'})</span>
               </label>
@@ -250,7 +254,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
                 <button
                   type="button"
                   onClick={() => setShowAddCatInput(true)}
-                  className="flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full transition-all hover:scale-105"
+                  className="flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full transition-all active:scale-95"
                   style={{ backgroundColor: `${themeConfig.accentHex}20`, color: themeConfig.accentHex }}
                 >
                   <Plus className="w-3 h-3" />
@@ -296,18 +300,18 @@ export const TaskModal: React.FC<TaskModalProps> = ({
               </div>
             )}
 
-            {/* Category Chips with Delete Button */}
-            <div className="flex flex-wrap gap-1.5 pt-1 max-h-32 overflow-y-auto">
+            {/* Category Chips */}
+            <div className="flex flex-wrap gap-1.5 pt-1 max-h-28 overflow-y-auto">
               {categories.map((c) => {
                 const isSelected = category === c;
                 return (
                   <div
                     key={c}
                     onClick={() => setCategory(c)}
-                    className={`group/chip cursor-pointer inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1 rounded-full border transition-all ${
+                    className={`group/chip cursor-pointer inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full border transition-all ${
                       isSelected
                         ? 'text-white font-semibold shadow-sm'
-                        : `${themeConfig.classes.badgeBg} ${themeConfig.classes.cardBorder} ${themeConfig.classes.textSecondary} hover:opacity-100`
+                        : `${themeConfig.classes.badgeBg} ${themeConfig.classes.cardBorder} ${themeConfig.classes.textSecondary}`
                     }`}
                     style={isSelected ? { backgroundColor: themeConfig.accentHex, borderColor: themeConfig.accentHex } : {}}
                   >
@@ -330,7 +334,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
 
           {/* Description */}
           <div>
-            <label className={`block text-xs font-semibold uppercase tracking-wider mb-1.5 flex items-center gap-1 ${themeConfig.classes.textMuted}`}>
+            <label className={`block font-semibold uppercase tracking-wider mb-1.5 flex items-center gap-1 ${themeConfig.classes.textMuted}`}>
               <AlignLeft className="w-3.5 h-3.5 opacity-60" />
               Description
             </label>
@@ -348,13 +352,13 @@ export const TaskModal: React.FC<TaskModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className={`px-4 py-2 text-xs font-medium rounded-xl transition-colors ${themeConfig.classes.badgeBg} ${themeConfig.classes.textSecondary} hover:opacity-100`}
+              className={`px-4 py-2.5 font-medium rounded-xl transition-colors ${themeConfig.classes.badgeBg} ${themeConfig.classes.textSecondary}`}
             >
               Cancel
             </button>
             <button
               type="submit"
-              className={`flex items-center gap-1.5 px-5 py-2 text-xs font-semibold rounded-xl shadow-md transition-all active:scale-95 ${themeConfig.classes.accentBtn}`}
+              className={`flex items-center gap-1.5 px-5 py-2.5 font-semibold rounded-xl shadow-md transition-all active:scale-95 ${themeConfig.classes.accentBtn}`}
             >
               <Check className="w-4 h-4" />
               {initialData ? 'Save Changes' : 'Create Objective'}
