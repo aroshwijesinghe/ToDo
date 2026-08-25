@@ -1,16 +1,5 @@
 [
   {
-    "id": "task-1787679650812-1ggh",
-    "rank": 71,
-    "task": "ddada",
-    "pri": 75,
-    "time": "2-3h",
-    "description": "",
-    "status": "todo",
-    "category": "DevOps",
-    "createdAt": "2026-08-25T17:40:50.812Z"
-  },
-  {
     "id": "task-1",
     "rank": 1,
     "task": "CI/CD",
@@ -42,6 +31,17 @@
     "status": "todo",
     "category": "DevOps",
     "createdAt": "2026-08-25T10:10:00.000Z"
+  },
+  {
+    "id": "task-4",
+    "rank": 4,
+    "task": "AWS basics",
+    "pri": 88,
+    "time": "5-7h",
+    "description": "Cloud + deployment basics",
+    "status": "todo",
+    "category": "Cloud",
+    "createdAt": "2026-08-25T10:15:00.000Z"
   },
   {
     "id": "task-5",
@@ -768,16 +768,5 @@
     "status": "todo",
     "category": "Writing",
     "createdAt": "2026-08-25T15:00:00.000Z"
-  },
-  {
-    "id": "task-4",
-    "rank": 4,
-    "task": "AWS basics",
-    "pri": 88,
-    "time": "5-7h",
-    "description": "Cloud + deployment basics",
-    "status": "todo",
-    "category": "Cloud",
-    "createdAt": "2026-08-25T10:15:00.000Z"
   }
 ]
