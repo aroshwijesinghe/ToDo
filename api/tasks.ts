@@ -13,69 +13,89 @@ export default async function handler(req: any, res: any) {
     return;
   }
 
-  const GITHUB_TOKEN = process.env.GITHUB_TOKEN || process.env.GH_TOKEN;
+  const GITHUB_TOKEN = (process.env.GITHUB_TOKEN || process.env.GH_TOKEN || '').trim();
   const OWNER = 'aroshwijesinghe';
   const REPO = 'ToDo';
   const PATH = 'data/tasks.json';
   const BRANCH = 'main';
 
-  // 1. GET: Fetch tasks from GitHub repository
+  const defaultHeaders: Record<string, string> = {
+    'User-Agent': 'Priority-ToDo-Vercel-App',
+    'Accept': 'application/vnd.github.v3+json',
+  };
+
+  if (GITHUB_TOKEN) {
+    defaultHeaders['Authorization'] = `token ${GITHUB_TOKEN}`;
+  }
+
+  // 1. GET: Fetch latest tasks from GitHub repository
   if (req.method === 'GET') {
     try {
+      // Direct raw content fetch with timestamp cache-buster
       const rawUrl = `https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}/${PATH}?_t=${Date.now()}`;
-      const response = await fetch(rawUrl, { cache: 'no-cache' });
-      if (response.ok) {
-        const tasks = await response.json();
-        return res.status(200).json({ success: true, tasks });
+      const rawRes = await fetch(rawUrl, {
+        cache: 'no-cache',
+        headers: { 'User-Agent': 'Priority-ToDo-Vercel-App' },
+      });
+
+      if (rawRes.ok) {
+        const tasks = await rawRes.json();
+        if (Array.isArray(tasks)) {
+          return res.status(200).json({ success: true, tasks, source: 'raw' });
+        }
       }
 
-      // Fallback to GitHub API if raw fails
-      const apiUrl = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${PATH}?ref=${BRANCH}`;
+      // API Fallback
+      const apiUrl = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${PATH}?ref=${BRANCH}&_t=${Date.now()}`;
       const apiRes = await fetch(apiUrl, {
-        headers: GITHUB_TOKEN
-          ? { Authorization: `Bearer ${GITHUB_TOKEN}`, Accept: 'application/vnd.github.v3+json' }
-          : { Accept: 'application/vnd.github.v3+json' },
+        headers: defaultHeaders,
+        cache: 'no-cache',
       });
 
       if (apiRes.ok) {
         const json = await apiRes.json();
         if (json.content) {
-          const decoded = Buffer.from(json.content, 'base64').toString('utf-8');
+          const decoded = Buffer.from(json.content.replace(/\s/g, ''), 'base64').toString('utf-8');
           const tasks = JSON.parse(decoded);
-          return res.status(200).json({ success: true, tasks });
+          return res.status(200).json({ success: true, tasks, source: 'api' });
         }
       }
 
-      return res.status(404).json({ success: false, message: 'tasks.json not found' });
+      return res.status(404).json({ success: false, message: 'tasks.json not found on GitHub' });
     } catch (err: any) {
       return res.status(500).json({ success: false, error: err.message });
     }
   }
 
-  // 2. POST / PUT: Auto-commit updated tasks.json to GitHub repository
+  // 2. POST: Commit updated tasks to GitHub data/tasks.json
   if (req.method === 'POST' || req.method === 'PUT') {
     if (!GITHUB_TOKEN) {
       return res.status(200).json({
         success: false,
-        message: 'GITHUB_TOKEN environment variable not set in Vercel settings. Tasks saved locally in browser.',
+        message: 'GITHUB_TOKEN environment variable not found in Vercel. Set GITHUB_TOKEN in Vercel Settings.',
       });
     }
 
     try {
-      const { tasks } = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+      let body = req.body;
+      if (typeof body === 'string') {
+        try {
+          body = JSON.parse(body);
+        } catch (e) {}
+      }
+
+      const tasks = body?.tasks || (Array.isArray(body) ? body : null);
       if (!Array.isArray(tasks)) {
-        return res.status(400).json({ success: false, message: 'Array of tasks expected' });
+        return res.status(400).json({ success: false, message: 'Invalid payload: array of tasks expected' });
       }
 
       const apiUrl = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${PATH}`;
 
-      // Get current file SHA
+      // Get latest SHA of the file from GitHub
       let currentSha: string | undefined;
-      const getRes = await fetch(`${apiUrl}?ref=${BRANCH}`, {
-        headers: {
-          Authorization: `Bearer ${GITHUB_TOKEN}`,
-          Accept: 'application/vnd.github.v3+json',
-        },
+      const getRes = await fetch(`${apiUrl}?ref=${BRANCH}&_t=${Date.now()}`, {
+        headers: defaultHeaders,
+        cache: 'no-cache',
       });
 
       if (getRes.ok) {
@@ -83,7 +103,7 @@ export default async function handler(req: any, res: any) {
         currentSha = fileData.sha;
       }
 
-      // Base64 encode JSON
+      // Base64 encode JSON content
       const jsonString = JSON.stringify(tasks, null, 2);
       const base64Content = Buffer.from(jsonString, 'utf-8').toString('base64');
 
@@ -91,12 +111,11 @@ export default async function handler(req: any, res: any) {
       const putRes = await fetch(apiUrl, {
         method: 'PUT',
         headers: {
-          Authorization: `Bearer ${GITHUB_TOKEN}`,
-          Accept: 'application/vnd.github.v3+json',
+          ...defaultHeaders,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          message: `Update tasks.json database [skip ci]`,
+          message: `Auto-sync tasks database [skip ci]`,
           content: base64Content,
           sha: currentSha,
           branch: BRANCH,
@@ -104,10 +123,17 @@ export default async function handler(req: any, res: any) {
       });
 
       if (putRes.ok) {
-        return res.status(200).json({ success: true, message: 'Updated GitHub data/tasks.json successfully' });
+        return res.status(200).json({
+          success: true,
+          message: 'Updated GitHub data/tasks.json successfully',
+          count: tasks.length,
+        });
       } else {
-        const err = await putRes.json();
-        return res.status(putRes.status).json({ success: false, error: err.message });
+        const errJson = await putRes.json();
+        return res.status(putRes.status).json({
+          success: false,
+          error: errJson.message || 'GitHub commit failed',
+        });
       }
     } catch (err: any) {
       return res.status(500).json({ success: false, error: err.message });

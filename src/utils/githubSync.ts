@@ -6,19 +6,24 @@ const BRANCH = 'main';
 const PATH = 'data/tasks.json';
 
 /**
- * Fetch latest tasks directly from GitHub repository or backend API
+ * Fetch latest tasks directly from GitHub repository via serverless backend API
  */
 export async function loadTasksFromGitHub(): Promise<TodoTask[] | null> {
-  // 1. Try serverless backend route
+  // 1. Primary: Serverless Backend Route /api/tasks
   try {
-    const res = await fetch('/api/tasks', { cache: 'no-cache' });
+    const res = await fetch(`/api/tasks?_t=${Date.now()}`, {
+      cache: 'no-cache',
+      headers: { 'Accept': 'application/json' },
+    });
     if (res.ok) {
       const data = await res.json();
       if (data.success && Array.isArray(data.tasks) && data.tasks.length > 0) {
         return data.tasks;
       }
     }
-  } catch (e) {}
+  } catch (e) {
+    console.warn('Backend API fetch warning:', e);
+  }
 
   // 2. Direct raw GitHub fetch fallback
   try {
@@ -31,16 +36,18 @@ export async function loadTasksFromGitHub(): Promise<TodoTask[] | null> {
       }
     }
   } catch (err) {
-    console.warn('Failed to load from raw GitHub URL:', err);
+    console.warn('Raw GitHub URL fetch warning:', err);
   }
 
   return null;
 }
 
 /**
- * Background commit tasks to GitHub repository via serverless backend API
+ * Background auto-commit tasks to GitHub repository via serverless backend API
  */
 export async function autoCommitTasksToGitHub(tasks: TodoTask[]): Promise<boolean> {
+  if (!Array.isArray(tasks) || tasks.length === 0) return false;
+
   try {
     const res = await fetch('/api/tasks', {
       method: 'POST',
