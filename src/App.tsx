@@ -12,6 +12,21 @@ import { TodoTask, FilterState, SortField, SortOrder } from './types/todo';
 
 const STORAGE_KEY = 'priority_todo_tasks_v1';
 const THEME_STORAGE_KEY = 'priority_todo_theme_v1';
+const CATEGORIES_STORAGE_KEY = 'priority_todo_categories_v1';
+
+const DEFAULT_CATEGORIES = [
+  'DevOps',
+  'Machine Learning',
+  'AI Tools',
+  'Data Science',
+  'Backend',
+  'Projects',
+  'Writing',
+  'Personal',
+  'Automation',
+  'Cloud',
+  'Computer Vision'
+];
 
 export function App() {
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
@@ -35,6 +50,19 @@ export function App() {
       console.error('Failed to load tasks from local storage', e);
     }
     return INITIAL_TASKS;
+  });
+
+  const [categoriesList, setCategoriesList] = useState<string[]>(() => {
+    try {
+      const savedCats = localStorage.getItem(CATEGORIES_STORAGE_KEY);
+      if (savedCats) {
+        const parsed = JSON.parse(savedCats);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {
+      console.error('Failed to load categories', e);
+    }
+    return DEFAULT_CATEGORIES;
   });
 
   const [viewMode, setViewMode] = useState<'table' | 'terminal'>('table');
@@ -68,7 +96,7 @@ export function App() {
     }
   }, [theme]);
 
-  // Save to localStorage
+  // Save tasks to localStorage
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
@@ -77,18 +105,46 @@ export function App() {
     }
   }, [tasks]);
 
+  // Save categories to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem(CATEGORIES_STORAGE_KEY, JSON.stringify(categoriesList));
+    } catch (e) {
+      console.error('Failed to save categories', e);
+    }
+  }, [categoriesList]);
+
   const toggleTheme = () => {
     setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
   };
 
-  // Extract unique categories
+  // Combine categories list with any unique task categories
   const categories = useMemo(() => {
-    const set = new Set<string>();
+    const set = new Set<string>(categoriesList);
     tasks.forEach(t => {
-      if (t.category) set.add(t.category);
+      if (t.category && t.category.trim()) set.add(t.category.trim());
     });
     return Array.from(set);
-  }, [tasks]);
+  }, [categoriesList, tasks]);
+
+  const handleAddCategory = (newCategory: string) => {
+    const trimmed = newCategory.trim();
+    if (!trimmed) return;
+    setCategoriesList(prev => {
+      if (!prev.includes(trimmed)) {
+        return [...prev, trimmed];
+      }
+      return prev;
+    });
+  };
+
+  const handleDeleteCategory = (catToDelete: string) => {
+    setCategoriesList(prev => prev.filter(c => c !== catToDelete));
+    // Also reset active category filter if deleted
+    if (filter.category === catToDelete) {
+      setFilter(prev => ({ ...prev, category: 'all' }));
+    }
+  };
 
   // Filter and Sort Tasks
   const filteredTasks = useMemo(() => {
@@ -194,7 +250,7 @@ export function App() {
         time: taskData.time || '1-2h',
         description: taskData.description,
         status: taskData.status,
-        category: taskData.category || 'General',
+        category: taskData.category || 'Projects',
         createdAt: new Date().toISOString(),
       };
       setTasks(prev => [newTask, ...prev]);
@@ -230,8 +286,9 @@ export function App() {
   };
 
   const handleResetData = () => {
-    if (confirm('Reset tasks back to the original 35 tasks from screenshot?')) {
+    if (confirm('Reset tasks and categories back to the original default dataset?')) {
       setTasks(INITIAL_TASKS);
+      setCategoriesList(DEFAULT_CATEGORIES);
     }
   };
 
@@ -309,6 +366,9 @@ export function App() {
         initialData={editingTask}
         defaultRank={tasks.length + 1}
         isDark={isDark}
+        categories={categories}
+        onAddCategory={handleAddCategory}
+        onDeleteCategory={handleDeleteCategory}
       />
 
       <ExportImportModal
