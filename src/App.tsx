@@ -140,7 +140,6 @@ export function App() {
 
   const handleDeleteCategory = (catToDelete: string) => {
     setCategoriesList(prev => prev.filter(c => c !== catToDelete));
-    // Also reset active category filter if deleted
     if (filter.category === catToDelete) {
       setFilter(prev => ({ ...prev, category: 'all' }));
     }
@@ -179,7 +178,7 @@ export function App() {
       result = result.filter(t => t.category === filter.category);
     }
 
-    // Sorting: completed tasks always sink to bottom unless filtering completed specifically
+    // Sorting: completed tasks sink to bottom unless filtering completed
     result.sort((a, b) => {
       if (a.status === 'completed' && b.status !== 'completed') return 1;
       if (a.status !== 'completed' && b.status === 'completed') return -1;
@@ -212,12 +211,12 @@ export function App() {
           if (t.status === 'todo') nextStatus = 'in-progress';
           else if (t.status === 'in-progress') {
             nextStatus = 'completed';
-            // Confetti celebration
+            // Apple celebratory confetti
             confetti({
-              particleCount: 60,
-              spread: 70,
-              origin: { y: 0.75 },
-              colors: ['#34d399', '#10b981', '#059669', '#38bdf8', '#fbbf24']
+              particleCount: 50,
+              spread: 60,
+              origin: { y: 0.8 },
+              colors: ['#30d158', '#34c759', '#63e6be', '#007aff']
             });
           } else {
             nextStatus = 'todo';
@@ -299,8 +298,10 @@ export function App() {
 
   return (
     <div
-      className={`min-h-screen flex flex-col font-sans transition-colors duration-200 ${
-        isDark ? 'bg-[#121417] text-gray-100' : 'bg-slate-50 text-slate-900'
+      className={`min-h-screen flex flex-col transition-colors duration-300 ${
+        isDark
+          ? 'bg-[#09090b] text-white selection:bg-emerald-500/30'
+          : 'bg-[#f5f5f7] text-slate-900 selection:bg-emerald-500/20'
       }`}
     >
       <Navbar
@@ -316,11 +317,11 @@ export function App() {
         onToggleTheme={toggleTheme}
       />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {/* Top metrics banner with large animated "toDo" card */}
+      <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-7">
+        {/* Apple Activity style "toDo" progress card */}
         <StatsBanner tasks={tasks} isDark={isDark} />
 
-        {/* Search, Filter & Sort Controls */}
+        {/* Filter & Sort Controls */}
         <FilterBar
           filter={filter}
           setFilter={setFilter}
@@ -380,11 +381,11 @@ export function App() {
       />
 
       <footer
-        className={`py-4 border-t text-center text-xs font-mono transition-colors ${
-          isDark ? 'border-gray-800/60 text-gray-500' : 'border-gray-200 text-gray-400 bg-white'
+        className={`py-6 border-t text-center text-xs transition-colors ${
+          isDark ? 'border-white/[0.06] text-white/40' : 'border-black/[0.05] text-slate-400'
         }`}
       >
-        Priority ToDo Dashboard • Dark &amp; Light Mode • Built with React &amp; Tailwind CSS
+        Priority ToDo • Minimalist Productivity Experience
       </footer>
     </div>
   );
