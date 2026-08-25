@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import confetti from 'canvas-confetti';
-import { Plus, Cloud, Link2, Sparkles, GitBranch } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { Navbar } from './components/Navbar';
 import { StatsBanner } from './components/StatsBanner';
 import { FilterBar } from './components/FilterBar';
@@ -8,33 +8,15 @@ import { TaskTable } from './components/TaskTable';
 import { TerminalView } from './components/TerminalView';
 import { TaskModal } from './components/TaskModal';
 import { ExportImportModal } from './components/ExportImportModal';
-import { SyncModal } from './components/SyncModal';
 import { INITIAL_TASKS } from './data/initialTasks';
 import { TodoTask, FilterState, SortField, SortOrder } from './types/todo';
 import { ThemeMode } from './types/theme';
 import { THEME_CONFIGS } from './utils/themeConfig';
-import {
-  getStoredSyncKey,
-  saveStoredSyncKey,
-  pushTasksToCloud,
-  pullTasksFromCloud,
-  getStoredSupabaseConfig,
-  saveStoredSupabaseConfig,
-  SupabaseConfig,
-  CLIENT_SESSION_ID,
-} from './utils/cloudSync';
-import {
-  getStoredGitHubConfig,
-  saveStoredGitHubConfig,
-  fetchTasksFromGitHub,
-  commitTasksToGitHub,
-  GitHubConfig,
-} from './utils/githubSync';
+import { loadTasksFromGitHub, autoCommitTasksToGitHub } from './utils/githubSync';
 
 const STORAGE_KEY = 'priority_todo_tasks_v1';
 const THEME_STORAGE_KEY = 'priority_todo_theme_mode_v2';
 const CATEGORIES_STORAGE_KEY = 'priority_todo_categories_v1';
-const LAST_SYNCED_STORAGE_KEY = 'priority_todo_last_synced_v1';
 
 const DEFAULT_CATEGORIES = [
   'DevOps',
@@ -89,41 +71,9 @@ export function App() {
     return DEFAULT_CATEGORIES;
   });
 
-  // Cloud Sync & Supabase & GitHub State
-  const [syncKey, setSyncKey] = useState<string | null>(() => {
-    try {
-      const urlParams = new URLSearchParams(window.location.search);
-      const urlSync = urlParams.get('sync');
-      if (urlSync) {
-        const clean = urlSync.trim().toLowerCase();
-        saveStoredSyncKey(clean);
-        return clean;
-      }
-    } catch (e) {}
-    return getStoredSyncKey();
-  });
-
-  const [supabaseConfig, setSupabaseConfig] = useState<SupabaseConfig | null>(() => {
-    return getStoredSupabaseConfig();
-  });
-
-  const [gitHubConfig, setGitHubConfig] = useState<GitHubConfig | null>(() => {
-    return getStoredGitHubConfig();
-  });
-
-  const [isSyncing, setIsSyncing] = useState(false);
-  const [lastSyncedAt, setLastSyncedAt] = useState<string | null>(() => {
-    try {
-      return localStorage.getItem(LAST_SYNCED_STORAGE_KEY);
-    } catch (e) {
-      return null;
-    }
-  });
-
   const [viewMode, setViewMode] = useState<'table' | 'terminal'>('table');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
-  const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<TodoTask | null>(null);
 
   const [filter, setFilter] = useState<FilterState>({
@@ -154,20 +104,18 @@ export function App() {
     }
   }, [theme]);
 
-  // 1. Initial GitHub Pull if GitHub configured
+  // 1. Initial Load: Fetch latest tasks from GitHub data/tasks.json
   useEffect(() => {
-    if (gitHubConfig && gitHubConfig.token) {
-      fetchTasksFromGitHub(gitHubConfig).then((ghTasks) => {
-        if (ghTasks && Array.isArray(ghTasks) && ghTasks.length > 0) {
-          isInternalUpdateRef.current = true;
-          setTasks(ghTasks);
-          setTimeout(() => { isInternalUpdateRef.current = false; }, 200);
-        }
-      });
-    }
-  }, [gitHubConfig]);
+    loadTasksFromGitHub().then((ghTasks) => {
+      if (ghTasks && Array.isArray(ghTasks) && ghTasks.length > 0) {
+        isInternalUpdateRef.current = true;
+        setTasks(ghTasks);
+        setTimeout(() => { isInternalUpdateRef.current = false; }, 200);
+      }
+    });
+  }, []);
 
-  // 2. Cross-Tab Sync via BroadcastChannel & Storage Event
+  // 2. Real-Time Cross-Tab Synchronization via BroadcastChannel & Storage Event
   useEffect(() => {
     let bc: BroadcastChannel | null = null;
     try {
@@ -206,44 +154,7 @@ export function App() {
     };
   }, []);
 
-  // 3. Real-Time Cloud SSE Listener for Incognito, Mobile & Remote Windows
-  useEffect(() => {
-    if (!syncKey) return;
-    const sanitizedKey = syncKey.replace(/[^a-z0-9_-]/g, '');
-    let eventSource: EventSource | null = null;
-
-    try {
-      eventSource = new EventSource(`https://ntfy.sh/priority_todo_room_${sanitizedKey}/sse`);
-
-      eventSource.onmessage = (event) => {
-        try {
-          const raw = JSON.parse(event.data);
-          if (raw && raw.message) {
-            const payload = typeof raw.message === 'string' ? JSON.parse(raw.message) : raw.message;
-            if (payload && Array.isArray(payload.tasks) && payload.senderId !== CLIENT_SESSION_ID) {
-              isInternalUpdateRef.current = true;
-              setTasks(payload.tasks);
-              if (payload.categories && Array.isArray(payload.categories)) {
-                setCategoriesList(payload.categories);
-              }
-              const now = new Date().toISOString();
-              setLastSyncedAt(now);
-              localStorage.setItem(LAST_SYNCED_STORAGE_KEY, now);
-              setTimeout(() => { isInternalUpdateRef.current = false; }, 200);
-            }
-          }
-        } catch (err) {}
-      };
-    } catch (e) {
-      console.warn('SSE connection error:', e);
-    }
-
-    return () => {
-      if (eventSource) eventSource.close();
-    };
-  }, [syncKey]);
-
-  // 4. Save tasks to localStorage, Broadcast to tabs, Push to Cloud & GitHub
+  // 3. Save tasks to localStorage, Broadcast to open tabs, Auto-commit to GitHub
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
@@ -256,28 +167,17 @@ export function App() {
         });
       }
 
-      // If active syncKey, push to cloud relay
-      if (syncKey && !isInternalUpdateRef.current) {
-        pushTasksToCloud(syncKey, tasks, categoriesList, supabaseConfig).then((success) => {
-          if (success) {
-            const now = new Date().toISOString();
-            setLastSyncedAt(now);
-            localStorage.setItem(LAST_SYNCED_STORAGE_KEY, now);
-          }
-        });
-      }
-
-      // If GitHub Database connected, commit to GitHub data/tasks.json (debounced 1.5s)
-      if (gitHubConfig && gitHubConfig.token && !isInternalUpdateRef.current) {
+      // Background auto-commit to GitHub data/tasks.json (debounced 1.5s)
+      if (!isInternalUpdateRef.current) {
         const timeout = setTimeout(() => {
-          commitTasksToGitHub(gitHubConfig, tasks);
+          autoCommitTasksToGitHub(tasks);
         }, 1500);
         return () => clearTimeout(timeout);
       }
     } catch (e) {
       console.error('Failed to save tasks', e);
     }
-  }, [tasks, syncKey, categoriesList, supabaseConfig, gitHubConfig]);
+  }, [tasks, categoriesList]);
 
   // Save categories to localStorage
   useEffect(() => {
@@ -287,56 +187,6 @@ export function App() {
       console.error('Failed to save categories', e);
     }
   }, [categoriesList]);
-
-  // 5. Cloud Pull & Sync Now Trigger
-  const handleSyncNow = useCallback(async () => {
-    if (!syncKey) return;
-    setIsSyncing(true);
-    try {
-      const cloudData = await pullTasksFromCloud(syncKey, supabaseConfig);
-      if (cloudData && Array.isArray(cloudData.tasks) && cloudData.tasks.length > 0) {
-        isInternalUpdateRef.current = true;
-        setTasks(cloudData.tasks);
-        if (cloudData.categories && cloudData.categories.length > 0) {
-          setCategoriesList(cloudData.categories);
-        }
-        const now = new Date().toISOString();
-        setLastSyncedAt(now);
-        localStorage.setItem(LAST_SYNCED_STORAGE_KEY, now);
-        setTimeout(() => { isInternalUpdateRef.current = false; }, 200);
-      } else {
-        await pushTasksToCloud(syncKey, tasks, categoriesList, supabaseConfig);
-        const now = new Date().toISOString();
-        setLastSyncedAt(now);
-        localStorage.setItem(LAST_SYNCED_STORAGE_KEY, now);
-      }
-    } finally {
-      setIsSyncing(false);
-    }
-  }, [syncKey, tasks, categoriesList, supabaseConfig]);
-
-  // Initial pull when syncKey changes
-  useEffect(() => {
-    if (syncKey) {
-      handleSyncNow();
-    }
-  }, [syncKey]);
-
-  const handleSetSyncKey = (key: string) => {
-    const clean = key.trim().toLowerCase();
-    saveStoredSyncKey(clean);
-    setSyncKey(clean);
-  };
-
-  const handleSaveSupabaseConfig = (config: SupabaseConfig | null) => {
-    saveStoredSupabaseConfig(config);
-    setSupabaseConfig(config);
-  };
-
-  const handleSaveGitHubConfig = (config: GitHubConfig | null) => {
-    saveStoredGitHubConfig(config);
-    setGitHubConfig(config);
-  };
 
   // Combine categories
   const categories = useMemo(() => {
@@ -525,50 +375,12 @@ export function App() {
           setIsAddModalOpen(true);
         }}
         onOpenExportModal={() => setIsExportModalOpen(true)}
-        onOpenSyncModal={() => setIsSyncModalOpen(true)}
-        syncKey={syncKey}
         taskCount={tasks.length}
         theme={theme}
         onSelectTheme={setTheme}
       />
 
       <main className="flex-1 max-w-6xl w-full mx-auto px-3.5 sm:px-6 lg:px-8 py-5 sm:py-7 space-y-4 sm:space-y-5">
-        {/* Notice for Incognito / Unconnected Mode */}
-        {!syncKey && !gitHubConfig?.token && (
-          <div className="p-3 sm:p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between gap-3 text-xs">
-            <div className="flex items-center gap-2.5 text-amber-300">
-              <Cloud className="w-4 h-4 shrink-0" />
-              <span>
-                <strong>Cross-Device &amp; Incognito Sync:</strong> Connect a Sync Room or GitHub Database so your tasks stay synchronized across incognito tabs, laptop &amp; phone!
-              </span>
-            </div>
-            <button
-              onClick={() => setIsSyncModalOpen(true)}
-              className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-black font-bold shrink-0 transition-all hover:scale-105"
-            >
-              Connect Room / GitHub
-            </button>
-          </div>
-        )}
-
-        {/* GitHub Database Connected Badge */}
-        {gitHubConfig?.token && (
-          <div className="p-2.5 sm:p-3 rounded-2xl bg-black/40 border border-white/10 flex items-center justify-between text-xs">
-            <div className="flex items-center gap-2 text-white">
-              <GitBranch className="w-4 h-4 text-emerald-400" />
-              <span>
-                <strong>🐙 GitHub Database:</strong> Auto-committing changes to <code className="text-emerald-400 font-mono">data/tasks.json</code> on <code className="font-mono">{gitHubConfig.owner}/{gitHubConfig.repo}</code>
-              </span>
-            </div>
-            <button
-              onClick={() => setIsSyncModalOpen(true)}
-              className="text-[11px] text-slate-400 hover:text-white"
-            >
-              Settings
-            </button>
-          </div>
-        )}
-
         {/* Story Vignette Card */}
         <div
           className={`border rounded-2xl p-3 sm:p-3.5 flex items-center justify-between gap-3 text-xs transition-all duration-300 transform hover:scale-[1.01] ${themeConfig.classes.cardBg} ${themeConfig.classes.cardBorder} ${themeConfig.classes.cardHoverGlow}`}
@@ -677,24 +489,8 @@ export function App() {
         theme={theme}
       />
 
-      <SyncModal
-        isOpen={isSyncModalOpen}
-        onClose={() => setIsSyncModalOpen(false)}
-        syncKey={syncKey}
-        onSetSyncKey={handleSetSyncKey}
-        onSyncNow={handleSyncNow}
-        isSyncing={isSyncing}
-        lastSyncedAt={lastSyncedAt}
-        supabaseConfig={supabaseConfig}
-        onSaveSupabaseConfig={handleSaveSupabaseConfig}
-        gitHubConfig={gitHubConfig}
-        onSaveGitHubConfig={handleSaveGitHubConfig}
-        tasks={tasks}
-        theme={theme}
-      />
-
       <footer className={`py-6 border-t text-center text-xs transition-colors ${themeConfig.classes.tableBorder} ${themeConfig.classes.textMuted}`}>
-        Priority ToDo • {themeConfig.emoji} {themeConfig.name} • GitHub &amp; Real-Time Cloud Synced
+        Priority ToDo • {themeConfig.emoji} {themeConfig.name} • Clean Minimalist Productivity
       </footer>
     </div>
   );
