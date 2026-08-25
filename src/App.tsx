@@ -11,8 +11,34 @@ import { INITIAL_TASKS } from './data/initialTasks';
 import { TodoTask, FilterState, SortField, SortOrder } from './types/todo';
 
 const STORAGE_KEY = 'priority_todo_tasks_v1';
+const THEME_STORAGE_KEY = 'priority_todo_theme_v1';
+const CATEGORIES_STORAGE_KEY = 'priority_todo_categories_v1';
+
+const DEFAULT_CATEGORIES = [
+  'DevOps',
+  'Machine Learning',
+  'AI Tools',
+  'Data Science',
+  'Backend',
+  'Projects',
+  'Writing',
+  'Personal',
+  'Automation',
+  'Cloud',
+  'Computer Vision'
+];
 
 export function App() {
+  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
+    try {
+      const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+      if (savedTheme === 'light' || savedTheme === 'dark') return savedTheme;
+    } catch (e) {
+      console.error('Failed to read theme', e);
+    }
+    return 'dark';
+  });
+
   const [tasks, setTasks] = useState<TodoTask[]>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
@@ -24,6 +50,19 @@ export function App() {
       console.error('Failed to load tasks from local storage', e);
     }
     return INITIAL_TASKS;
+  });
+
+  const [categoriesList, setCategoriesList] = useState<string[]>(() => {
+    try {
+      const savedCats = localStorage.getItem(CATEGORIES_STORAGE_KEY);
+      if (savedCats) {
+        const parsed = JSON.parse(savedCats);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {
+      console.error('Failed to load categories', e);
+    }
+    return DEFAULT_CATEGORIES;
   });
 
   const [viewMode, setViewMode] = useState<'table' | 'terminal'>('table');
@@ -41,7 +80,23 @@ export function App() {
   const [sortField, setSortField] = useState<SortField>('rank');
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
 
-  // Save to localStorage
+  const isDark = theme === 'dark';
+
+  // Apply theme to html root
+  useEffect(() => {
+    try {
+      localStorage.setItem(THEME_STORAGE_KEY, theme);
+      if (theme === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    } catch (e) {
+      console.error('Failed to save theme', e);
+    }
+  }, [theme]);
+
+  // Save tasks to localStorage
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
@@ -50,14 +105,46 @@ export function App() {
     }
   }, [tasks]);
 
-  // Extract unique categories
+  // Save categories to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem(CATEGORIES_STORAGE_KEY, JSON.stringify(categoriesList));
+    } catch (e) {
+      console.error('Failed to save categories', e);
+    }
+  }, [categoriesList]);
+
+  const toggleTheme = () => {
+    setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
+  };
+
+  // Combine categories list with any unique task categories
   const categories = useMemo(() => {
-    const set = new Set<string>();
+    const set = new Set<string>(categoriesList);
     tasks.forEach(t => {
-      if (t.category) set.add(t.category);
+      if (t.category && t.category.trim()) set.add(t.category.trim());
     });
     return Array.from(set);
-  }, [tasks]);
+  }, [categoriesList, tasks]);
+
+  const handleAddCategory = (newCategory: string) => {
+    const trimmed = newCategory.trim();
+    if (!trimmed) return;
+    setCategoriesList(prev => {
+      if (!prev.includes(trimmed)) {
+        return [...prev, trimmed];
+      }
+      return prev;
+    });
+  };
+
+  const handleDeleteCategory = (catToDelete: string) => {
+    setCategoriesList(prev => prev.filter(c => c !== catToDelete));
+    // Also reset active category filter if deleted
+    if (filter.category === catToDelete) {
+      setFilter(prev => ({ ...prev, category: 'all' }));
+    }
+  };
 
   // Filter and Sort Tasks
   const filteredTasks = useMemo(() => {
@@ -92,8 +179,11 @@ export function App() {
       result = result.filter(t => t.category === filter.category);
     }
 
-    // Sorting
+    // Sorting: completed tasks always sink to bottom unless filtering completed specifically
     result.sort((a, b) => {
+      if (a.status === 'completed' && b.status !== 'completed') return 1;
+      if (a.status !== 'completed' && b.status === 'completed') return -1;
+
       let comparison = 0;
       if (sortField === 'rank') {
         comparison = a.rank - b.rank;
@@ -115,19 +205,19 @@ export function App() {
 
   // Actions
   const handleToggleStatus = (id: string) => {
-    setTasks(prev =>
-      prev.map(t => {
+    setTasks(prev => {
+      const updated = prev.map(t => {
         if (t.id === id) {
           let nextStatus: TodoTask['status'] = 'todo';
           if (t.status === 'todo') nextStatus = 'in-progress';
           else if (t.status === 'in-progress') {
             nextStatus = 'completed';
-            // Trigger celebratory confetti!
+            // Confetti celebration
             confetti({
-              particleCount: 50,
-              spread: 60,
-              origin: { y: 0.8 },
-              colors: ['#34d399', '#10b981', '#059669', '#6ee7b7']
+              particleCount: 60,
+              spread: 70,
+              origin: { y: 0.75 },
+              colors: ['#34d399', '#10b981', '#059669', '#38bdf8', '#fbbf24']
             });
           } else {
             nextStatus = 'todo';
@@ -139,8 +229,13 @@ export function App() {
           };
         }
         return t;
-      })
-    );
+      });
+
+      // Move completed tasks to the bottom of the list
+      const activeTasks = updated.filter(t => t.status !== 'completed');
+      const completedTasks = updated.filter(t => t.status === 'completed');
+      return [...activeTasks, ...completedTasks];
+    });
   };
 
   const handleSaveTask = (taskData: Omit<TodoTask, 'id' | 'createdAt'> & { id?: string }) => {
@@ -163,7 +258,7 @@ export function App() {
         time: taskData.time || '1-2h',
         description: taskData.description,
         status: taskData.status,
-        category: taskData.category || 'General',
+        category: taskData.category || 'Projects',
         createdAt: new Date().toISOString(),
       };
       setTasks(prev => [newTask, ...prev]);
@@ -183,7 +278,6 @@ export function App() {
       const temp = updated[index];
       updated[index] = updated[index - 1];
       updated[index - 1] = temp;
-      // Re-assign ranks
       return updated.map((t, idx) => ({ ...t, rank: idx + 1 }));
     });
   };
@@ -195,15 +289,8 @@ export function App() {
       const temp = updated[index];
       updated[index] = updated[index + 1];
       updated[index + 1] = temp;
-      // Re-assign ranks
       return updated.map((t, idx) => ({ ...t, rank: idx + 1 }));
     });
-  };
-
-  const handleResetData = () => {
-    if (confirm('Reset tasks back to the original 35 tasks from screenshot?')) {
-      setTasks(INITIAL_TASKS);
-    }
   };
 
   const handleImportTasks = (newTasks: TodoTask[]) => {
@@ -211,7 +298,11 @@ export function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#121417] text-gray-100 flex flex-col font-sans">
+    <div
+      className={`min-h-screen flex flex-col font-sans transition-colors duration-200 ${
+        isDark ? 'bg-[#121417] text-gray-100' : 'bg-slate-50 text-slate-900'
+      }`}
+    >
       <Navbar
         viewMode={viewMode}
         setViewMode={setViewMode}
@@ -220,13 +311,14 @@ export function App() {
           setIsAddModalOpen(true);
         }}
         onOpenExportModal={() => setIsExportModalOpen(true)}
-        onResetData={handleResetData}
         taskCount={tasks.length}
+        theme={theme}
+        onToggleTheme={toggleTheme}
       />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {/* Top metrics banner */}
-        <StatsBanner tasks={tasks} />
+        {/* Top metrics banner with large animated "toDo" card */}
+        <StatsBanner tasks={tasks} isDark={isDark} />
 
         {/* Search, Filter & Sort Controls */}
         <FilterBar
@@ -237,6 +329,7 @@ export function App() {
           sortOrder={sortOrder}
           setSortOrder={setSortOrder}
           categories={categories}
+          isDark={isDark}
         />
 
         {/* View content: Table or Terminal */}
@@ -255,9 +348,10 @@ export function App() {
             setSortField={setSortField}
             sortOrder={sortOrder}
             setSortOrder={setSortOrder}
+            isDark={isDark}
           />
         ) : (
-          <TerminalView tasks={filteredTasks} />
+          <TerminalView tasks={filteredTasks} isDark={isDark} />
         )}
       </main>
 
@@ -271,6 +365,10 @@ export function App() {
         onSave={handleSaveTask}
         initialData={editingTask}
         defaultRank={tasks.length + 1}
+        isDark={isDark}
+        categories={categories}
+        onAddCategory={handleAddCategory}
+        onDeleteCategory={handleDeleteCategory}
       />
 
       <ExportImportModal
@@ -278,10 +376,15 @@ export function App() {
         onClose={() => setIsExportModalOpen(false)}
         tasks={tasks}
         onImportTasks={handleImportTasks}
+        isDark={isDark}
       />
 
-      <footer className="py-4 border-t border-gray-800/60 text-center text-xs font-mono text-gray-500">
-        Priority ToDo Dashboard • Built with React &amp; Tailwind CSS
+      <footer
+        className={`py-4 border-t text-center text-xs font-mono transition-colors ${
+          isDark ? 'border-gray-800/60 text-gray-500' : 'border-gray-200 text-gray-400 bg-white'
+        }`}
+      >
+        Priority ToDo Dashboard • Dark &amp; Light Mode • Built with React &amp; Tailwind CSS
       </footer>
     </div>
   );

@@ -5,9 +5,10 @@ import { generateAsciiTable } from '../utils/helpers';
 
 interface TerminalViewProps {
   tasks: TodoTask[];
+  isDark?: boolean;
 }
 
-export const TerminalView: React.FC<TerminalViewProps> = ({ tasks }) => {
+export const TerminalView: React.FC<TerminalViewProps> = ({ tasks, isDark = true }) => {
   const [copied, setCopied] = useState(false);
   const asciiContent = generateAsciiTable(tasks);
 
@@ -18,9 +19,17 @@ export const TerminalView: React.FC<TerminalViewProps> = ({ tasks }) => {
   };
 
   return (
-    <div className="bg-[#14161a] border border-gray-800 rounded-xl overflow-hidden shadow-2xl">
+    <div
+      className={`border rounded-xl overflow-hidden shadow-2xl transition-colors ${
+        isDark ? 'bg-[#14161a] border-gray-800' : 'bg-slate-900 border-slate-800 text-gray-100 shadow-xl'
+      }`}
+    >
       {/* Terminal Bar */}
-      <div className="flex items-center justify-between px-4 py-2.5 bg-[#0f1114] border-b border-gray-800">
+      <div
+        className={`flex items-center justify-between px-4 py-2.5 border-b ${
+          isDark ? 'bg-[#0f1114] border-gray-800' : 'bg-slate-950 border-slate-800'
+        }`}
+      >
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-1.5">
             <div className="w-3 h-3 rounded-full bg-rose-500/80" />
