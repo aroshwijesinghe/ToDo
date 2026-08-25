@@ -9,9 +9,11 @@ import { TaskModal } from './components/TaskModal';
 import { ExportImportModal } from './components/ExportImportModal';
 import { INITIAL_TASKS } from './data/initialTasks';
 import { TodoTask, FilterState, SortField, SortOrder } from './types/todo';
+import { ThemeMode } from './types/theme';
+import { THEME_CONFIGS } from './utils/themeConfig';
 
 const STORAGE_KEY = 'priority_todo_tasks_v1';
-const THEME_STORAGE_KEY = 'priority_todo_theme_v1';
+const THEME_STORAGE_KEY = 'priority_todo_theme_mode_v2';
 const CATEGORIES_STORAGE_KEY = 'priority_todo_categories_v1';
 
 const DEFAULT_CATEGORIES = [
@@ -29,10 +31,12 @@ const DEFAULT_CATEGORIES = [
 ];
 
 export function App() {
-  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
+  const [theme, setTheme] = useState<ThemeMode>(() => {
     try {
-      const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
-      if (savedTheme === 'light' || savedTheme === 'dark') return savedTheme;
+      const savedTheme = localStorage.getItem(THEME_STORAGE_KEY) as ThemeMode;
+      if (savedTheme && ['dark', 'white', 'purple', 'green', 'warm'].includes(savedTheme)) {
+        return savedTheme;
+      }
     } catch (e) {
       console.error('Failed to read theme', e);
     }
@@ -80,16 +84,16 @@ export function App() {
   const [sortField, setSortField] = useState<SortField>('rank');
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
 
-  const isDark = theme === 'dark';
+  const themeConfig = THEME_CONFIGS[theme];
 
-  // Apply theme to html root
+  // Apply theme to document element
   useEffect(() => {
     try {
       localStorage.setItem(THEME_STORAGE_KEY, theme);
-      if (theme === 'dark') {
-        document.documentElement.classList.add('dark');
-      } else {
+      if (theme === 'white') {
         document.documentElement.classList.remove('dark');
+      } else {
+        document.documentElement.classList.add('dark');
       }
     } catch (e) {
       console.error('Failed to save theme', e);
@@ -113,10 +117,6 @@ export function App() {
       console.error('Failed to save categories', e);
     }
   }, [categoriesList]);
-
-  const toggleTheme = () => {
-    setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
-  };
 
   // Combine categories list with any unique task categories
   const categories = useMemo(() => {
@@ -178,7 +178,7 @@ export function App() {
       result = result.filter(t => t.category === filter.category);
     }
 
-    // Sorting: completed tasks sink to bottom unless filtering completed
+    // Sorting: completed tasks sink to bottom
     result.sort((a, b) => {
       if (a.status === 'completed' && b.status !== 'completed') return 1;
       if (a.status !== 'completed' && b.status === 'completed') return -1;
@@ -211,12 +211,12 @@ export function App() {
           if (t.status === 'todo') nextStatus = 'in-progress';
           else if (t.status === 'in-progress') {
             nextStatus = 'completed';
-            // Apple celebratory confetti
+            // Theme-aware confetti celebration
             confetti({
-              particleCount: 50,
-              spread: 60,
-              origin: { y: 0.8 },
-              colors: ['#30d158', '#34c759', '#63e6be', '#007aff']
+              particleCount: 60,
+              spread: 70,
+              origin: { y: 0.75 },
+              colors: [themeConfig.accentHex, '#38bdf8', '#fbbf24', '#f43f5e', '#a855f7']
             });
           } else {
             nextStatus = 'todo';
@@ -230,7 +230,7 @@ export function App() {
         return t;
       });
 
-      // Move completed tasks to the bottom of the list
+      // Move completed tasks to the bottom
       const activeTasks = updated.filter(t => t.status !== 'completed');
       const completedTasks = updated.filter(t => t.status === 'completed');
       return [...activeTasks, ...completedTasks];
@@ -239,7 +239,6 @@ export function App() {
 
   const handleSaveTask = (taskData: Omit<TodoTask, 'id' | 'createdAt'> & { id?: string }) => {
     if (taskData.id) {
-      // Edit
       setTasks(prev =>
         prev.map(t =>
           t.id === taskData.id
@@ -248,7 +247,6 @@ export function App() {
         )
       );
     } else {
-      // Add
       const newTask: TodoTask = {
         id: `task-${Date.now()}`,
         rank: taskData.rank || tasks.length + 1,
@@ -297,13 +295,8 @@ export function App() {
   };
 
   return (
-    <div
-      className={`min-h-screen flex flex-col transition-colors duration-300 ${
-        isDark
-          ? 'bg-[#09090b] text-white selection:bg-emerald-500/30'
-          : 'bg-[#f5f5f7] text-slate-900 selection:bg-emerald-500/20'
-      }`}
-    >
+    <div className={`min-h-screen flex flex-col transition-colors duration-500 ${themeConfig.classes.appBg} ${themeConfig.classes.textPrimary}`}>
+      {/* Navigation Header */}
       <Navbar
         viewMode={viewMode}
         setViewMode={setViewMode}
@@ -314,12 +307,44 @@ export function App() {
         onOpenExportModal={() => setIsExportModalOpen(true)}
         taskCount={tasks.length}
         theme={theme}
-        onToggleTheme={toggleTheme}
+        onSelectTheme={setTheme}
       />
 
-      <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-7">
-        {/* Apple Activity style "toDo" progress card */}
-        <StatsBanner tasks={tasks} isDark={isDark} />
+      <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-7 space-y-5">
+        {/* Interactive Story Vignette Card */}
+        <div
+          className={`border rounded-2xl p-3.5 flex items-center justify-between gap-3 text-xs transition-all duration-300 transform hover:scale-[1.01] ${themeConfig.classes.cardBg} ${themeConfig.classes.cardBorder} ${themeConfig.classes.cardHoverGlow}`}
+        >
+          <div className="flex items-center gap-3">
+            <span className="text-xl shrink-0 p-2 rounded-xl bg-white/5 shadow-inner">
+              {themeConfig.emoji}
+            </span>
+            <div>
+              <p className="font-bold flex items-center gap-2">
+                <span>{themeConfig.name}</span>
+                <span className="text-[10px] font-normal opacity-70">— {themeConfig.tagline}</span>
+              </p>
+              <p className={`text-[11px] mt-0.5 line-clamp-1 ${themeConfig.classes.textSecondary}`}>
+                "{themeConfig.story}"
+              </p>
+            </div>
+          </div>
+
+          <button
+            onClick={() => {
+              const themeOrder: ThemeMode[] = ['dark', 'white', 'purple', 'green', 'warm'];
+              const nextIdx = (themeOrder.indexOf(theme) + 1) % themeOrder.length;
+              setTheme(themeOrder[nextIdx]);
+            }}
+            className={`px-3 py-1.5 rounded-xl text-[11px] font-semibold shrink-0 border transition-all duration-200 hover:scale-105 active:scale-95 ${themeConfig.classes.badgeBg} ${themeConfig.classes.cardBorder}`}
+            style={{ color: themeConfig.accentHex }}
+          >
+            Next World ➔
+          </button>
+        </div>
+
+        {/* Story-Driven "toDo" progress card */}
+        <StatsBanner tasks={tasks} theme={theme} />
 
         {/* Filter & Sort Controls */}
         <FilterBar
@@ -330,7 +355,7 @@ export function App() {
           sortOrder={sortOrder}
           setSortOrder={setSortOrder}
           categories={categories}
-          isDark={isDark}
+          theme={theme}
         />
 
         {/* View content: Table or Terminal */}
@@ -349,10 +374,10 @@ export function App() {
             setSortField={setSortField}
             sortOrder={sortOrder}
             setSortOrder={setSortOrder}
-            isDark={isDark}
+            theme={theme}
           />
         ) : (
-          <TerminalView tasks={filteredTasks} isDark={isDark} />
+          <TerminalView tasks={filteredTasks} theme={theme} />
         )}
       </main>
 
@@ -366,7 +391,7 @@ export function App() {
         onSave={handleSaveTask}
         initialData={editingTask}
         defaultRank={tasks.length + 1}
-        isDark={isDark}
+        theme={theme}
         categories={categories}
         onAddCategory={handleAddCategory}
         onDeleteCategory={handleDeleteCategory}
@@ -377,15 +402,11 @@ export function App() {
         onClose={() => setIsExportModalOpen(false)}
         tasks={tasks}
         onImportTasks={handleImportTasks}
-        isDark={isDark}
+        theme={theme}
       />
 
-      <footer
-        className={`py-6 border-t text-center text-xs transition-colors ${
-          isDark ? 'border-white/[0.06] text-white/40' : 'border-black/[0.05] text-slate-400'
-        }`}
-      >
-        Priority ToDo • Minimalist Productivity Experience
+      <footer className={`py-6 border-t text-center text-xs transition-colors ${themeConfig.classes.tableBorder} ${themeConfig.classes.textMuted}`}>
+        Priority ToDo • {themeConfig.emoji} {themeConfig.name} • Minimalist Productivity Experience
       </footer>
     </div>
   );
