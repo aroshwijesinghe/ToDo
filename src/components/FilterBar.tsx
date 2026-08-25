@@ -52,6 +52,11 @@ export const FilterBar: React.FC<FilterBarProps> = ({
     filter.priorityTier !== 'all' ||
     filter.category !== 'all';
 
+  const optionStyle = {
+    backgroundColor: themeConfig.cardHex,
+    color: isWhite ? '#0f172a' : '#ffffff',
+  };
+
   return (
     <div
       className={`border rounded-2xl p-3 sm:p-3.5 mb-5 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 transition-all duration-300 ${themeConfig.classes.cardBg} ${themeConfig.classes.cardBorder} shadow-sm`}
@@ -102,36 +107,38 @@ export const FilterBar: React.FC<FilterBarProps> = ({
           })}
         </div>
 
-        {/* Priority Filter */}
+        {/* Priority Filter with Theme-Matching Option Styles */}
         <select
           value={filter.priorityTier}
           onChange={(e) => setFilter(prev => ({ ...prev, priorityTier: e.target.value as FilterState['priorityTier'] }))}
           className={`border text-xs rounded-xl px-3 py-1.5 focus:outline-none transition-all ${themeConfig.classes.cardBg} ${themeConfig.classes.cardBorder} ${themeConfig.classes.textPrimary}`}
+          style={optionStyle}
         >
-          <option value="all">All Priorities</option>
-          <option value="critical">Critical (85-100)</option>
-          <option value="high">High (70-84)</option>
-          <option value="medium">Medium (50-69)</option>
-          <option value="low">Low (&lt;50)</option>
+          <option value="all" style={optionStyle}>All Priorities</option>
+          <option value="critical" style={optionStyle}>Critical (85-100)</option>
+          <option value="high" style={optionStyle}>High (70-84)</option>
+          <option value="medium" style={optionStyle}>Medium (50-69)</option>
+          <option value="low" style={optionStyle}>Low (&lt;50)</option>
         </select>
 
-        {/* Category Filter */}
+        {/* Category Filter with Theme-Matching Option Styles */}
         {categories.length > 0 && (
           <select
             value={filter.category}
             onChange={(e) => setFilter(prev => ({ ...prev, category: e.target.value }))}
             className={`border text-xs rounded-xl px-3 py-1.5 focus:outline-none transition-all ${themeConfig.classes.cardBg} ${themeConfig.classes.cardBorder} ${themeConfig.classes.textPrimary}`}
+            style={optionStyle}
           >
-            <option value="all">All Categories</option>
+            <option value="all" style={optionStyle}>All Categories</option>
             {categories.map((c) => (
-              <option key={c} value={c}>
+              <option key={c} value={c} style={optionStyle}>
                 {c}
               </option>
             ))}
           </select>
         )}
 
-        {/* Sort PRI Button with Hover */}
+        {/* Sort PRI Button */}
         <button
           onClick={() => toggleSort('pri')}
           className={`flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-xl border transition-all duration-200 hover:scale-105 active:scale-95 ${
@@ -147,7 +154,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
           {sortField === 'pri' && (sortOrder === 'asc' ? '↑' : '↓')}
         </button>
 
-        {/* Sort RANK Button with Hover */}
+        {/* Sort RANK Button */}
         <button
           onClick={() => toggleSort('rank')}
           className={`flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-xl border transition-all duration-200 hover:scale-105 active:scale-95 ${
