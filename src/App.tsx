@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import confetti from 'canvas-confetti';
-import { Plus, Cloud, Link2, Sparkles } from 'lucide-react';
+import { Plus, Cloud, Link2, Sparkles, Github } from 'lucide-react';
 import { Navbar } from './components/Navbar';
 import { StatsBanner } from './components/StatsBanner';
 import { FilterBar } from './components/FilterBar';
@@ -23,6 +23,13 @@ import {
   SupabaseConfig,
   CLIENT_SESSION_ID,
 } from './utils/cloudSync';
+import {
+  getStoredGitHubConfig,
+  saveStoredGitHubConfig,
+  fetchTasksFromGitHub,
+  commitTasksToGitHub,
+  GitHubConfig,
+} from './utils/githubSync';
 
 const STORAGE_KEY = 'priority_todo_tasks_v1';
 const THEME_STORAGE_KEY = 'priority_todo_theme_mode_v2';
@@ -82,7 +89,7 @@ export function App() {
     return DEFAULT_CATEGORIES;
   });
 
-  // Cloud Sync & Supabase State
+  // Cloud Sync & Supabase & GitHub State
   const [syncKey, setSyncKey] = useState<string | null>(() => {
     try {
       const urlParams = new URLSearchParams(window.location.search);
@@ -98,6 +105,10 @@ export function App() {
 
   const [supabaseConfig, setSupabaseConfig] = useState<SupabaseConfig | null>(() => {
     return getStoredSupabaseConfig();
+  });
+
+  const [gitHubConfig, setGitHubConfig] = useState<GitHubConfig | null>(() => {
+    return getStoredGitHubConfig();
   });
 
   const [isSyncing, setIsSyncing] = useState(false);
@@ -143,7 +154,20 @@ export function App() {
     }
   }, [theme]);
 
-  // 1. Cross-Tab Sync via BroadcastChannel & Storage Event
+  // 1. Initial GitHub Pull if GitHub configured
+  useEffect(() => {
+    if (gitHubConfig && gitHubConfig.token) {
+      fetchTasksFromGitHub(gitHubConfig).then((ghTasks) => {
+        if (ghTasks && Array.isArray(ghTasks) && ghTasks.length > 0) {
+          isInternalUpdateRef.current = true;
+          setTasks(ghTasks);
+          setTimeout(() => { isInternalUpdateRef.current = false; }, 200);
+        }
+      });
+    }
+  }, [gitHubConfig]);
+
+  // 2. Cross-Tab Sync via BroadcastChannel & Storage Event
   useEffect(() => {
     let bc: BroadcastChannel | null = null;
     try {
@@ -182,7 +206,7 @@ export function App() {
     };
   }, []);
 
-  // 2. Real-Time Cloud Server-Sent Events (SSE) Listener for Incognito, Mobile & Remote Windows
+  // 3. Real-Time Cloud SSE Listener for Incognito, Mobile & Remote Windows
   useEffect(() => {
     if (!syncKey) return;
     const sanitizedKey = syncKey.replace(/[^a-z0-9_-]/g, '');
@@ -219,7 +243,7 @@ export function App() {
     };
   }, [syncKey]);
 
-  // 3. Save tasks to localStorage & Broadcast to tabs & Real-Time Push to Cloud
+  // 4. Save tasks to localStorage, Broadcast to tabs, Push to Cloud & GitHub
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
@@ -242,10 +266,18 @@ export function App() {
           }
         });
       }
+
+      // If GitHub Database connected, commit to GitHub data/tasks.json (debounced 1.5s)
+      if (gitHubConfig && gitHubConfig.token && !isInternalUpdateRef.current) {
+        const timeout = setTimeout(() => {
+          commitTasksToGitHub(gitHubConfig, tasks);
+        }, 1500);
+        return () => clearTimeout(timeout);
+      }
     } catch (e) {
       console.error('Failed to save tasks', e);
     }
-  }, [tasks, syncKey, categoriesList, supabaseConfig]);
+  }, [tasks, syncKey, categoriesList, supabaseConfig, gitHubConfig]);
 
   // Save categories to localStorage
   useEffect(() => {
@@ -256,7 +288,7 @@ export function App() {
     }
   }, [categoriesList]);
 
-  // 4. Cloud Pull & Sync Now Trigger
+  // 5. Cloud Pull & Sync Now Trigger
   const handleSyncNow = useCallback(async () => {
     if (!syncKey) return;
     setIsSyncing(true);
@@ -299,6 +331,11 @@ export function App() {
   const handleSaveSupabaseConfig = (config: SupabaseConfig | null) => {
     saveStoredSupabaseConfig(config);
     setSupabaseConfig(config);
+  };
+
+  const handleSaveGitHubConfig = (config: GitHubConfig | null) => {
+    saveStoredGitHubConfig(config);
+    setGitHubConfig(config);
   };
 
   // Combine categories
@@ -497,19 +534,37 @@ export function App() {
 
       <main className="flex-1 max-w-6xl w-full mx-auto px-3.5 sm:px-6 lg:px-8 py-5 sm:py-7 space-y-4 sm:space-y-5">
         {/* Notice for Incognito / Unconnected Mode */}
-        {!syncKey && (
+        {!syncKey && !gitHubConfig?.token && (
           <div className="p-3 sm:p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between gap-3 text-xs">
             <div className="flex items-center gap-2.5 text-amber-300">
               <Cloud className="w-4 h-4 shrink-0" />
               <span>
-                <strong>Cross-Device &amp; Incognito Sync:</strong> Connect a Sync Room (e.g. <span className="underline font-bold">arosh</span>) so your tasks stay synchronized across incognito tabs, laptop &amp; phone!
+                <strong>Cross-Device &amp; Incognito Sync:</strong> Connect a Sync Room or GitHub Database so your tasks stay synchronized across incognito tabs, laptop &amp; phone!
               </span>
             </div>
             <button
               onClick={() => setIsSyncModalOpen(true)}
               className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-black font-bold shrink-0 transition-all hover:scale-105"
             >
-              Connect Room
+              Connect Room / GitHub
+            </button>
+          </div>
+        )}
+
+        {/* GitHub Database Connected Badge */}
+        {gitHubConfig?.token && (
+          <div className="p-2.5 sm:p-3 rounded-2xl bg-black/40 border border-white/10 flex items-center justify-between text-xs">
+            <div className="flex items-center gap-2 text-white">
+              <Github className="w-4 h-4 text-emerald-400" />
+              <span>
+                <strong>🐙 GitHub Database:</strong> Auto-committing changes to <code className="text-emerald-400 font-mono">data/tasks.json</code> on <code className="font-mono">{gitHubConfig.owner}/{gitHubConfig.repo}</code>
+              </span>
+            </div>
+            <button
+              onClick={() => setIsSyncModalOpen(true)}
+              className="text-[11px] text-slate-400 hover:text-white"
+            >
+              Settings
             </button>
           </div>
         )}
@@ -632,11 +687,14 @@ export function App() {
         lastSyncedAt={lastSyncedAt}
         supabaseConfig={supabaseConfig}
         onSaveSupabaseConfig={handleSaveSupabaseConfig}
+        gitHubConfig={gitHubConfig}
+        onSaveGitHubConfig={handleSaveGitHubConfig}
+        tasks={tasks}
         theme={theme}
       />
 
       <footer className={`py-6 border-t text-center text-xs transition-colors ${themeConfig.classes.tableBorder} ${themeConfig.classes.textMuted}`}>
-        Priority ToDo • {themeConfig.emoji} {themeConfig.name} • Real-Time Cloud Synced
+        Priority ToDo • {themeConfig.emoji} {themeConfig.name} • GitHub &amp; Real-Time Cloud Synced
       </footer>
     </div>
   );
