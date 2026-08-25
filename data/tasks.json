@@ -33,17 +33,6 @@
     "createdAt": "2026-08-25T10:10:00.000Z"
   },
   {
-    "id": "task-4",
-    "rank": 4,
-    "task": "AWS basics",
-    "pri": 88,
-    "time": "5-7h",
-    "description": "Cloud + deployment basics",
-    "status": "in-progress",
-    "category": "Cloud",
-    "createdAt": "2026-08-25T10:15:00.000Z"
-  },
-  {
     "id": "task-5",
     "rank": 5,
     "task": "GitHub Copilot",
@@ -768,5 +757,16 @@
     "status": "todo",
     "category": "Writing",
     "createdAt": "2026-08-25T15:00:00.000Z"
+  },
+  {
+    "id": "task-4",
+    "rank": 4,
+    "task": "AWS basics",
+    "pri": 88,
+    "time": "5-7h",
+    "description": "Cloud + deployment basics",
+    "status": "todo",
+    "category": "Cloud",
+    "createdAt": "2026-08-25T10:15:00.000Z"
   }
 ]
