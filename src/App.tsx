@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import confetti from 'canvas-confetti';
 import { Plus } from 'lucide-react';
 import { Navbar } from './components/Navbar';
@@ -88,10 +88,9 @@ export function App() {
 
   const themeConfig = THEME_CONFIGS[theme];
   const broadcastChannelRef = useRef<BroadcastChannel | null>(null);
-  const lastTaskHashRef = useRef<string>('');
-  // Cooldown: after a local edit, pause remote polling for 15 seconds
-  // so GitHub has time to receive the commit before we pull again
-  const localChangeCooldownRef = useRef<number>(0);
+  // Track whether we have uncommitted local changes
+  const pendingCommitRef = useRef(false);
+  const commitInProgressRef = useRef(false);
 
   // Apply theme to document element
   useEffect(() => {
@@ -107,64 +106,66 @@ export function App() {
     }
   }, [theme]);
 
-  // Helper to hash task state
-  const hashTasks = (tList: TodoTask[]): string => {
-    return tList.map(t => `${t.id}_${t.status}_${t.rank}_${t.pri}_${t.task}`).join('|');
-  };
+  // 1. On mount: try to load from GitHub, but ONLY if localStorage is empty
+  //    (i.e. first visit on a new device). Otherwise local is king.
+  useEffect(() => {
+    const localSaved = localStorage.getItem(STORAGE_KEY);
+    const hasLocalData = localSaved && JSON.parse(localSaved)?.length > 0;
 
-  // 1. Fetch from GitHub — but SKIP if user recently made a local change
-  const syncWithRemoteGitHub = useCallback(async () => {
-    // If user edited tasks locally within the last 15 seconds, skip this poll
-    if (Date.now() < localChangeCooldownRef.current) {
-      return;
-    }
-
-    try {
-      const remoteTasks = await loadTasksFromGitHub();
+    loadTasksFromGitHub().then((remoteTasks) => {
       if (remoteTasks && Array.isArray(remoteTasks) && remoteTasks.length > 0) {
-        const remoteHash = hashTasks(remoteTasks);
-        if (remoteHash !== lastTaskHashRef.current) {
-          lastTaskHashRef.current = remoteHash;
+        if (!hasLocalData) {
+          // First visit on this device — use GitHub data
           setTasks(remoteTasks);
-          try {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(remoteTasks));
-          } catch (e) {}
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(remoteTasks));
         }
+        // If we already have local data, keep it (local is king)
       }
-    } catch (e) {}
+    }).catch(() => {});
   }, []);
 
-  // Initial fetch on mount + Polling every 10 seconds + on window focus
+  // 2. Poll for remote changes — ONLY when there are NO pending local commits
   useEffect(() => {
-    syncWithRemoteGitHub();
+    const pollRemote = async () => {
+      // Never overwrite if we have uncommitted local changes
+      if (pendingCommitRef.current || commitInProgressRef.current) return;
 
-    const interval = setInterval(() => {
-      syncWithRemoteGitHub();
-    }, 10000);
-
-    const handleFocus = () => {
-      syncWithRemoteGitHub();
+      try {
+        const remoteTasks = await loadTasksFromGitHub();
+        if (remoteTasks && Array.isArray(remoteTasks) && remoteTasks.length > 0) {
+          // Check if remote is different from what we currently have
+          const currentLocal = localStorage.getItem(STORAGE_KEY);
+          const remoteStr = JSON.stringify(remoteTasks);
+          if (currentLocal !== remoteStr) {
+            setTasks(remoteTasks);
+            localStorage.setItem(STORAGE_KEY, remoteStr);
+          }
+        }
+      } catch (e) {}
     };
 
+    const interval = setInterval(pollRemote, 15000);
+    const handleFocus = () => {
+      if (!pendingCommitRef.current && !commitInProgressRef.current) {
+        pollRemote();
+      }
+    };
     window.addEventListener('focus', handleFocus);
-    document.addEventListener('visibilitychange', handleFocus);
 
     return () => {
       clearInterval(interval);
       window.removeEventListener('focus', handleFocus);
-      document.removeEventListener('visibilitychange', handleFocus);
     };
-  }, [syncWithRemoteGitHub]);
+  }, []);
 
-  // 2. Real-Time Cross-Tab Synchronization via BroadcastChannel & Storage Event
+  // 3. Cross-Tab Sync via BroadcastChannel & Storage Event
   useEffect(() => {
     let bc: BroadcastChannel | null = null;
     try {
-      bc = new BroadcastChannel('priority_todo_sync_v3');
+      bc = new BroadcastChannel('priority_todo_sync_v4');
       broadcastChannelRef.current = bc;
       bc.onmessage = (event) => {
         if (event.data?.type === 'TASKS_UPDATED' && Array.isArray(event.data.tasks)) {
-          lastTaskHashRef.current = hashTasks(event.data.tasks);
           setTasks(event.data.tasks);
           if (event.data.categories && Array.isArray(event.data.categories)) {
             setCategoriesList(event.data.categories);
@@ -177,14 +178,10 @@ export function App() {
       if (e.key === STORAGE_KEY && e.newValue) {
         try {
           const parsed = JSON.parse(e.newValue);
-          if (Array.isArray(parsed)) {
-            lastTaskHashRef.current = hashTasks(parsed);
-            setTasks(parsed);
-          }
+          if (Array.isArray(parsed)) setTasks(parsed);
         } catch (err) {}
       }
     };
-
     window.addEventListener('storage', handleStorageEvent);
 
     return () => {
@@ -193,12 +190,12 @@ export function App() {
     };
   }, []);
 
-  // 3. Save tasks locally & Broadcast to open tabs & Commit to GitHub
+  // 4. Save locally + Broadcast + Commit to GitHub
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
-      const currentHash = hashTasks(tasks);
 
+      // Broadcast to other tabs on same browser
       if (broadcastChannelRef.current) {
         broadcastChannelRef.current.postMessage({
           type: 'TASKS_UPDATED',
@@ -207,16 +204,21 @@ export function App() {
         });
       }
 
-      // Auto-commit to GitHub if tasks actually changed
-      if (currentHash !== lastTaskHashRef.current) {
-        lastTaskHashRef.current = currentHash;
-        // Set 15-second cooldown so polling doesn't overwrite this change
-        localChangeCooldownRef.current = Date.now() + 15000;
-        const timeout = setTimeout(() => {
-          autoCommitTasksToGitHub(tasks);
-        }, 1000);
-        return () => clearTimeout(timeout);
-      }
+      // Mark that we have pending uncommitted changes
+      pendingCommitRef.current = true;
+
+      // Debounced commit to GitHub (2 seconds)
+      const timeout = setTimeout(async () => {
+        commitInProgressRef.current = true;
+        const success = await autoCommitTasksToGitHub(tasks);
+        commitInProgressRef.current = false;
+        if (success) {
+          pendingCommitRef.current = false;
+        }
+        // If commit failed, pendingCommit stays true → polling won't overwrite
+      }, 2000);
+
+      return () => clearTimeout(timeout);
     } catch (e) {
       console.error('Failed to save tasks', e);
     }
