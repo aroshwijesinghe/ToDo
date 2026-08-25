@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import confetti from 'canvas-confetti';
+import { Plus } from 'lucide-react';
 import { Navbar } from './components/Navbar';
 import { StatsBanner } from './components/StatsBanner';
 import { FilterBar } from './components/FilterBar';
@@ -7,14 +8,22 @@ import { TaskTable } from './components/TaskTable';
 import { TerminalView } from './components/TerminalView';
 import { TaskModal } from './components/TaskModal';
 import { ExportImportModal } from './components/ExportImportModal';
+import { SyncModal } from './components/SyncModal';
 import { INITIAL_TASKS } from './data/initialTasks';
 import { TodoTask, FilterState, SortField, SortOrder } from './types/todo';
 import { ThemeMode } from './types/theme';
 import { THEME_CONFIGS } from './utils/themeConfig';
+import {
+  getStoredSyncKey,
+  saveStoredSyncKey,
+  pushTasksToCloud,
+  pullTasksFromCloud,
+} from './utils/cloudSync';
 
 const STORAGE_KEY = 'priority_todo_tasks_v1';
 const THEME_STORAGE_KEY = 'priority_todo_theme_mode_v2';
 const CATEGORIES_STORAGE_KEY = 'priority_todo_categories_v1';
+const LAST_SYNCED_STORAGE_KEY = 'priority_todo_last_synced_v1';
 
 const DEFAULT_CATEGORIES = [
   'DevOps',
@@ -69,9 +78,33 @@ export function App() {
     return DEFAULT_CATEGORIES;
   });
 
+  // Cloud Sync State
+  const [syncKey, setSyncKey] = useState<string | null>(() => {
+    // Check URL parameters for ?sync=KEY
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlSync = urlParams.get('sync');
+      if (urlSync) {
+        saveStoredSyncKey(urlSync.toUpperCase());
+        return urlSync.toUpperCase();
+      }
+    } catch (e) {}
+    return getStoredSyncKey();
+  });
+
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [lastSyncedAt, setLastSyncedAt] = useState<string | null>(() => {
+    try {
+      return localStorage.getItem(LAST_SYNCED_STORAGE_KEY);
+    } catch (e) {
+      return null;
+    }
+  });
+
   const [viewMode, setViewMode] = useState<'table' | 'terminal'>('table');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<TodoTask | null>(null);
 
   const [filter, setFilter] = useState<FilterState>({
@@ -100,14 +133,23 @@ export function App() {
     }
   }, [theme]);
 
-  // Save tasks to localStorage
+  // Save tasks to localStorage & auto-sync to cloud if syncKey active
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+      if (syncKey) {
+        pushTasksToCloud(syncKey, tasks, categoriesList).then((success) => {
+          if (success) {
+            const now = new Date().toISOString();
+            setLastSyncedAt(now);
+            localStorage.setItem(LAST_SYNCED_STORAGE_KEY, now);
+          }
+        });
+      }
     } catch (e) {
       console.error('Failed to save tasks', e);
     }
-  }, [tasks]);
+  }, [tasks, syncKey, categoriesList]);
 
   // Save categories to localStorage
   useEffect(() => {
@@ -117,6 +159,49 @@ export function App() {
       console.error('Failed to save categories', e);
     }
   }, [categoriesList]);
+
+  // Background Cloud Pull / Auto-Sync Poller
+  const handleSyncNow = useCallback(async () => {
+    if (!syncKey) return;
+    setIsSyncing(true);
+    try {
+      const cloudData = await pullTasksFromCloud(syncKey);
+      if (cloudData && Array.isArray(cloudData.tasks)) {
+        setTasks(cloudData.tasks);
+        if (cloudData.categories && cloudData.categories.length > 0) {
+          setCategoriesList(cloudData.categories);
+        }
+        const now = new Date().toISOString();
+        setLastSyncedAt(now);
+        localStorage.setItem(LAST_SYNCED_STORAGE_KEY, now);
+      } else {
+        // Push initial local dataset to cloud room
+        await pushTasksToCloud(syncKey, tasks, categoriesList);
+        const now = new Date().toISOString();
+        setLastSyncedAt(now);
+        localStorage.setItem(LAST_SYNCED_STORAGE_KEY, now);
+      }
+    } finally {
+      setIsSyncing(false);
+    }
+  }, [syncKey, tasks, categoriesList]);
+
+  // Initial pull when syncKey is present or changed
+  useEffect(() => {
+    if (syncKey) {
+      handleSyncNow();
+      // Periodically sync every 20s
+      const interval = setInterval(() => {
+        handleSyncNow();
+      }, 20000);
+      return () => clearInterval(interval);
+    }
+  }, [syncKey]);
+
+  const handleSetSyncKey = (key: string) => {
+    saveStoredSyncKey(key);
+    setSyncKey(key);
+  };
 
   // Combine categories list with any unique task categories
   const categories = useMemo(() => {
@@ -211,7 +296,7 @@ export function App() {
           if (t.status === 'todo') nextStatus = 'in-progress';
           else if (t.status === 'in-progress') {
             nextStatus = 'completed';
-            // Theme-aware confetti celebration
+            // Confetti celebration
             confetti({
               particleCount: 60,
               spread: 70,
@@ -295,7 +380,7 @@ export function App() {
   };
 
   return (
-    <div className={`min-h-screen flex flex-col transition-colors duration-500 ${themeConfig.classes.appBg} ${themeConfig.classes.textPrimary}`}>
+    <div className={`min-h-screen flex flex-col transition-colors duration-500 pb-16 sm:pb-0 ${themeConfig.classes.appBg} ${themeConfig.classes.textPrimary}`}>
       {/* Navigation Header */}
       <Navbar
         viewMode={viewMode}
@@ -305,24 +390,26 @@ export function App() {
           setIsAddModalOpen(true);
         }}
         onOpenExportModal={() => setIsExportModalOpen(true)}
+        onOpenSyncModal={() => setIsSyncModalOpen(true)}
+        syncKey={syncKey}
         taskCount={tasks.length}
         theme={theme}
         onSelectTheme={setTheme}
       />
 
-      <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-7 space-y-5">
-        {/* Interactive Story Vignette Card */}
+      <main className="flex-1 max-w-6xl w-full mx-auto px-3.5 sm:px-6 lg:px-8 py-5 sm:py-7 space-y-4 sm:space-y-5">
+        {/* Story Vignette Card */}
         <div
-          className={`border rounded-2xl p-3.5 flex items-center justify-between gap-3 text-xs transition-all duration-300 transform hover:scale-[1.01] ${themeConfig.classes.cardBg} ${themeConfig.classes.cardBorder} ${themeConfig.classes.cardHoverGlow}`}
+          className={`border rounded-2xl p-3 sm:p-3.5 flex items-center justify-between gap-3 text-xs transition-all duration-300 transform hover:scale-[1.01] ${themeConfig.classes.cardBg} ${themeConfig.classes.cardBorder} ${themeConfig.classes.cardHoverGlow}`}
         >
-          <div className="flex items-center gap-3">
-            <span className="text-xl shrink-0 p-2 rounded-xl bg-white/5 shadow-inner">
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            <span className="text-lg sm:text-xl shrink-0 p-1.5 sm:p-2 rounded-xl bg-white/5 shadow-inner">
               {themeConfig.emoji}
             </span>
             <div>
-              <p className="font-bold flex items-center gap-2">
+              <p className="font-bold flex items-center gap-1.5 sm:gap-2">
                 <span>{themeConfig.name}</span>
-                <span className="text-[10px] font-normal opacity-70">— {themeConfig.tagline}</span>
+                <span className="text-[10px] font-normal opacity-70 hidden sm:inline">— {themeConfig.tagline}</span>
               </p>
               <p className={`text-[11px] mt-0.5 line-clamp-1 ${themeConfig.classes.textSecondary}`}>
                 "{themeConfig.story}"
@@ -336,7 +423,7 @@ export function App() {
               const nextIdx = (themeOrder.indexOf(theme) + 1) % themeOrder.length;
               setTheme(themeOrder[nextIdx]);
             }}
-            className={`px-3 py-1.5 rounded-xl text-[11px] font-semibold shrink-0 border transition-all duration-200 hover:scale-105 active:scale-95 ${themeConfig.classes.badgeBg} ${themeConfig.classes.cardBorder}`}
+            className={`px-2.5 sm:px-3 py-1.5 rounded-xl text-[10px] sm:text-[11px] font-semibold shrink-0 border transition-all duration-200 hover:scale-105 active:scale-95 ${themeConfig.classes.badgeBg} ${themeConfig.classes.cardBorder}`}
             style={{ color: themeConfig.accentHex }}
           >
             Next World ➔
@@ -358,7 +445,7 @@ export function App() {
           theme={theme}
         />
 
-        {/* View content: Table or Terminal */}
+        {/* View content: Table / Mobile Cards or Terminal */}
         {viewMode === 'table' ? (
           <TaskTable
             tasks={filteredTasks}
@@ -380,6 +467,20 @@ export function App() {
           <TerminalView tasks={filteredTasks} theme={theme} />
         )}
       </main>
+
+      {/* Floating Action Button (FAB) on Mobile Screens for quick thumb tap */}
+      <div className="fixed right-5 bottom-5 z-40 sm:hidden">
+        <button
+          onClick={() => {
+            setEditingTask(null);
+            setIsAddModalOpen(true);
+          }}
+          className={`w-14 h-14 rounded-full flex items-center justify-center shadow-2xl text-white active:scale-90 transition-transform ${themeConfig.classes.accentBtn}`}
+          title="Add New Objective"
+        >
+          <Plus className="w-7 h-7 stroke-[2.5]" />
+        </button>
+      </div>
 
       {/* Modals */}
       <TaskModal
@@ -405,8 +506,19 @@ export function App() {
         theme={theme}
       />
 
+      <SyncModal
+        isOpen={isSyncModalOpen}
+        onClose={() => setIsSyncModalOpen(false)}
+        syncKey={syncKey}
+        onSetSyncKey={handleSetSyncKey}
+        onSyncNow={handleSyncNow}
+        isSyncing={isSyncing}
+        lastSyncedAt={lastSyncedAt}
+        theme={theme}
+      />
+
       <footer className={`py-6 border-t text-center text-xs transition-colors ${themeConfig.classes.tableBorder} ${themeConfig.classes.textMuted}`}>
-        Priority ToDo • {themeConfig.emoji} {themeConfig.name} • Minimalist Productivity Experience
+        Priority ToDo • {themeConfig.emoji} {themeConfig.name} • Cross-Device Synced
       </footer>
     </div>
   );
