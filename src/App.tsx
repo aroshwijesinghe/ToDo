@@ -88,9 +88,10 @@ export function App() {
 
   const themeConfig = THEME_CONFIGS[theme];
   const broadcastChannelRef = useRef<BroadcastChannel | null>(null);
-  // Track whether we have uncommitted local changes
   const pendingCommitRef = useRef(false);
   const commitInProgressRef = useRef(false);
+  // Flag to prevent BroadcastChannel ping-pong loops
+  const isExternalUpdateRef = useRef(false);
 
   // Apply theme to document element
   useEffect(() => {
@@ -106,31 +107,32 @@ export function App() {
     }
   }, [theme]);
 
-  // 1. On mount: try to load from GitHub, but ONLY if localStorage is empty
-  //    (i.e. first visit on a new device). Otherwise local is king.
+  // 1. On mount: load from GitHub ONLY if localStorage is empty (new device)
   useEffect(() => {
     const localSaved = localStorage.getItem(STORAGE_KEY);
-    const hasLocalData = localSaved && JSON.parse(localSaved)?.length > 0;
+    let hasLocalData = false;
+    try {
+      hasLocalData = localSaved ? JSON.parse(localSaved)?.length > 0 : false;
+    } catch (e) {}
 
     loadTasksFromGitHub().then((remoteTasks) => {
       if (remoteTasks && Array.isArray(remoteTasks) && remoteTasks.length > 0) {
         if (!hasLocalData) {
-          // First visit on this device — use GitHub data
+          isExternalUpdateRef.current = true;
           setTasks(remoteTasks);
           localStorage.setItem(STORAGE_KEY, JSON.stringify(remoteTasks));
+          setTimeout(() => { isExternalUpdateRef.current = false; }, 500);
         }
-        // If we already have local data, keep it (local is king)
       }
     }).catch(() => {});
   }, []);
 
-  // 2. Poll for remote changes — ONLY when no modals are open and no pending commits
+  // 2. Poll for remote changes — skip if modal open, pending commit, or external update
   useEffect(() => {
     const pollRemote = async () => {
-      // Never poll while user is actively editing in a modal
       if (isAddModalOpen || isExportModalOpen) return;
-      // Never overwrite if we have uncommitted local changes
       if (pendingCommitRef.current || commitInProgressRef.current) return;
+      if (isExternalUpdateRef.current) return;
 
       try {
         const remoteTasks = await loadTasksFromGitHub();
@@ -138,8 +140,10 @@ export function App() {
           const currentLocal = localStorage.getItem(STORAGE_KEY);
           const remoteStr = JSON.stringify(remoteTasks);
           if (currentLocal !== remoteStr) {
+            isExternalUpdateRef.current = true;
             setTasks(remoteTasks);
             localStorage.setItem(STORAGE_KEY, remoteStr);
+            setTimeout(() => { isExternalUpdateRef.current = false; }, 500);
           }
         }
       } catch (e) {}
@@ -147,7 +151,7 @@ export function App() {
 
     const interval = setInterval(pollRemote, 15000);
     const handleFocus = () => {
-      if (!isAddModalOpen && !isExportModalOpen && !pendingCommitRef.current && !commitInProgressRef.current) {
+      if (!isAddModalOpen && !isExportModalOpen && !pendingCommitRef.current) {
         pollRemote();
       }
     };
@@ -159,27 +163,37 @@ export function App() {
     };
   }, [isAddModalOpen, isExportModalOpen]);
 
-  // 3. Cross-Tab Sync via BroadcastChannel & Storage Event
+  // 3. Cross-Tab Sync (BroadcastChannel & storage events)
   useEffect(() => {
     let bc: BroadcastChannel | null = null;
     try {
-      bc = new BroadcastChannel('priority_todo_sync_v4');
+      bc = new BroadcastChannel('priority_todo_sync_v5');
       broadcastChannelRef.current = bc;
       bc.onmessage = (event) => {
         if (event.data?.type === 'TASKS_UPDATED' && Array.isArray(event.data.tasks)) {
+          // Skip if modal is open (don't interrupt typing)
+          if (isAddModalOpen || isExportModalOpen) return;
+          // Mark as external so the save effect won't re-broadcast
+          isExternalUpdateRef.current = true;
           setTasks(event.data.tasks);
           if (event.data.categories && Array.isArray(event.data.categories)) {
             setCategoriesList(event.data.categories);
           }
+          setTimeout(() => { isExternalUpdateRef.current = false; }, 500);
         }
       };
     } catch (e) {}
 
     const handleStorageEvent = (e: StorageEvent) => {
       if (e.key === STORAGE_KEY && e.newValue) {
+        if (isAddModalOpen || isExportModalOpen) return;
         try {
           const parsed = JSON.parse(e.newValue);
-          if (Array.isArray(parsed)) setTasks(parsed);
+          if (Array.isArray(parsed)) {
+            isExternalUpdateRef.current = true;
+            setTasks(parsed);
+            setTimeout(() => { isExternalUpdateRef.current = false; }, 500);
+          }
         } catch (err) {}
       }
     };
@@ -189,37 +203,36 @@ export function App() {
       window.removeEventListener('storage', handleStorageEvent);
       if (bc) bc.close();
     };
-  }, []);
+  }, [isAddModalOpen, isExportModalOpen]);
 
-  // 4. Save locally + Broadcast + Commit to GitHub
+  // 4. Save locally + Broadcast (only if USER action) + Commit to GitHub
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
 
-      // Broadcast to other tabs on same browser
-      if (broadcastChannelRef.current) {
-        broadcastChannelRef.current.postMessage({
-          type: 'TASKS_UPDATED',
-          tasks,
-          categories: categoriesList,
-        });
-      }
-
-      // Mark that we have pending uncommitted changes
-      pendingCommitRef.current = true;
-
-      // Debounced commit to GitHub (2 seconds)
-      const timeout = setTimeout(async () => {
-        commitInProgressRef.current = true;
-        const success = await autoCommitTasksToGitHub(tasks);
-        commitInProgressRef.current = false;
-        if (success) {
-          pendingCommitRef.current = false;
+      // Only broadcast & commit if this was a LOCAL user action, not an external update
+      if (!isExternalUpdateRef.current) {
+        // Broadcast to other tabs
+        if (broadcastChannelRef.current) {
+          broadcastChannelRef.current.postMessage({
+            type: 'TASKS_UPDATED',
+            tasks,
+            categories: categoriesList,
+          });
         }
-        // If commit failed, pendingCommit stays true → polling won't overwrite
-      }, 2000);
 
-      return () => clearTimeout(timeout);
+        // Mark pending and commit to GitHub
+        pendingCommitRef.current = true;
+        const timeout = setTimeout(async () => {
+          commitInProgressRef.current = true;
+          const success = await autoCommitTasksToGitHub(tasks);
+          commitInProgressRef.current = false;
+          if (success) {
+            pendingCommitRef.current = false;
+          }
+        }, 2000);
+        return () => clearTimeout(timeout);
+      }
     } catch (e) {
       console.error('Failed to save tasks', e);
     }
