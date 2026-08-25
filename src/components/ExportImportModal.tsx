@@ -50,41 +50,42 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-200">
       <div
-        className={`border rounded-2xl w-full max-w-md overflow-hidden shadow-2xl transition-colors ${
-          isDark ? 'bg-[#181b20] border-gray-700/80 text-gray-100' : 'bg-white border-gray-300 text-gray-900'
+        className={`border rounded-3xl w-full max-w-md overflow-hidden shadow-2xl transition-all ${
+          isDark
+            ? 'bg-[#1c1c1e] border-white/[0.12] text-white shadow-[0_20px_60px_rgba(0,0,0,0.8)]'
+            : 'bg-white/95 border-black/[0.08] text-slate-900 shadow-[0_20px_60px_rgba(0,0,0,0.15)]'
         }`}
       >
-        {/* Header */}
+        {/* Apple Modal Header */}
         <div
-          className={`flex items-center justify-between px-6 py-4 border-b ${
-            isDark ? 'bg-[#121417] border-gray-800' : 'bg-gray-50 border-gray-200'
+          className={`flex items-center justify-between px-6 py-4.5 border-b ${
+            isDark ? 'bg-white/[0.02] border-white/[0.08]' : 'bg-black/[0.02] border-black/[0.05]'
           }`}
         >
-          <h3 className="text-base font-bold font-mono flex items-center gap-2">
+          <h3 className="text-base font-semibold tracking-tight flex items-center gap-2">
             <FileText className="w-4 h-4 text-emerald-500" />
-            Export / Import Data
+            Share &amp; Backup
           </h3>
           <button
             onClick={onClose}
-            className={`p-1 rounded-lg transition-colors ${
-              isDark ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-800' : 'text-gray-500 hover:text-gray-800 hover:bg-gray-100'
+            className={`w-7 h-7 rounded-full flex items-center justify-center transition-colors ${
+              isDark ? 'bg-white/10 hover:bg-white/20 text-white/80' : 'bg-black/5 hover:bg-black/10 text-slate-700'
             }`}
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Content */}
         <div className="p-6 space-y-5">
-          {/* Status alert */}
           {importStatus.message && (
             <div
-              className={`p-3 rounded-lg flex items-center gap-2 text-xs font-mono border ${
+              className={`p-3 rounded-2xl flex items-center gap-2.5 text-xs font-medium border ${
                 importStatus.success
-                  ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/30'
-                  : 'bg-rose-500/10 text-rose-500 border-rose-500/30'
+                  ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
+                  : 'bg-rose-500/10 text-rose-500 border-rose-500/20'
               }`}
             >
               {importStatus.success ? (
@@ -98,38 +99,38 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
 
           {/* Export Options */}
           <div>
-            <h4 className={`text-xs font-mono uppercase font-semibold mb-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-              Export Tasks ({tasks.length} items)
+            <h4 className={`text-xs uppercase font-semibold tracking-wider mb-2.5 ${isDark ? 'text-white/60' : 'text-slate-500'}`}>
+              Export Dataset ({tasks.length} objectives)
             </h4>
             <div className="grid grid-cols-2 gap-3">
               <button
                 onClick={() => exportToJSON(tasks)}
-                className={`flex items-center justify-center gap-2 py-2.5 px-3 border rounded-lg text-xs font-mono transition-all ${
+                className={`flex items-center justify-center gap-2 py-3 px-3.5 border rounded-2xl text-xs font-medium transition-all ${
                   isDark
-                    ? 'bg-[#121417] hover:bg-gray-800 border-gray-800 text-gray-200'
-                    : 'bg-gray-50 hover:bg-gray-100 border-gray-200 text-gray-800'
+                    ? 'bg-white/[0.06] hover:bg-white/[0.12] border-white/[0.08] text-white'
+                    : 'bg-black/[0.03] hover:bg-black/[0.06] border-black/[0.06] text-slate-800'
                 }`}
               >
-                <Download className="w-3.5 h-3.5 text-emerald-500" />
+                <Download className="w-4 h-4 text-emerald-500" />
                 Export JSON
               </button>
               <button
                 onClick={() => exportToCSV(tasks)}
-                className={`flex items-center justify-center gap-2 py-2.5 px-3 border rounded-lg text-xs font-mono transition-all ${
+                className={`flex items-center justify-center gap-2 py-3 px-3.5 border rounded-2xl text-xs font-medium transition-all ${
                   isDark
-                    ? 'bg-[#121417] hover:bg-gray-800 border-gray-800 text-gray-200'
-                    : 'bg-gray-50 hover:bg-gray-100 border-gray-200 text-gray-800'
+                    ? 'bg-white/[0.06] hover:bg-white/[0.12] border-white/[0.08] text-white'
+                    : 'bg-black/[0.03] hover:bg-black/[0.06] border-black/[0.06] text-slate-800'
                 }`}
               >
-                <Download className="w-3.5 h-3.5 text-emerald-500" />
+                <Download className="w-4 h-4 text-emerald-500" />
                 Export CSV
               </button>
             </div>
           </div>
 
-          <div className={`border-t pt-4 ${isDark ? 'border-gray-800' : 'border-gray-200'}`}>
-            <h4 className={`text-xs font-mono uppercase font-semibold mb-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-              Import from Backup
+          <div className={`border-t pt-4 ${isDark ? 'border-white/[0.08]' : 'border-black/[0.06]'}`}>
+            <h4 className={`text-xs uppercase font-semibold tracking-wider mb-2.5 ${isDark ? 'text-white/60' : 'text-slate-500'}`}>
+              Restore from JSON File
             </h4>
             <input
               type="file"
@@ -140,10 +141,10 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
             />
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 rounded-lg text-xs font-mono text-emerald-500 font-semibold transition-all"
+              className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 rounded-2xl text-xs text-emerald-500 font-semibold transition-all active:scale-98"
             >
               <Upload className="w-4 h-4" />
-              Choose JSON File to Import
+              Select File to Import
             </button>
           </div>
         </div>
