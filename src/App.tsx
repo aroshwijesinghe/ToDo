@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import confetti from 'canvas-confetti';
 import { Plus } from 'lucide-react';
 import { Navbar } from './components/Navbar';
@@ -18,6 +18,9 @@ import {
   saveStoredSyncKey,
   pushTasksToCloud,
   pullTasksFromCloud,
+  getStoredSupabaseConfig,
+  saveStoredSupabaseConfig,
+  SupabaseConfig,
 } from './utils/cloudSync';
 
 const STORAGE_KEY = 'priority_todo_tasks_v1';
@@ -78,18 +81,22 @@ export function App() {
     return DEFAULT_CATEGORIES;
   });
 
-  // Cloud Sync State
+  // Cloud Sync & Supabase State
   const [syncKey, setSyncKey] = useState<string | null>(() => {
-    // Check URL parameters for ?sync=KEY
     try {
       const urlParams = new URLSearchParams(window.location.search);
       const urlSync = urlParams.get('sync');
       if (urlSync) {
-        saveStoredSyncKey(urlSync.toUpperCase());
-        return urlSync.toUpperCase();
+        const clean = urlSync.trim().toLowerCase();
+        saveStoredSyncKey(clean);
+        return clean;
       }
     } catch (e) {}
     return getStoredSyncKey();
+  });
+
+  const [supabaseConfig, setSupabaseConfig] = useState<SupabaseConfig | null>(() => {
+    return getStoredSupabaseConfig();
   });
 
   const [isSyncing, setIsSyncing] = useState(false);
@@ -118,6 +125,7 @@ export function App() {
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
 
   const themeConfig = THEME_CONFIGS[theme];
+  const broadcastChannelRef = useRef<BroadcastChannel | null>(null);
 
   // Apply theme to document element
   useEffect(() => {
@@ -133,12 +141,63 @@ export function App() {
     }
   }, [theme]);
 
-  // Save tasks to localStorage & auto-sync to cloud if syncKey active
+  // 1. Real-Time Cross-Tab Synchronization via BroadcastChannel & Storage Event
+  useEffect(() => {
+    let bc: BroadcastChannel | null = null;
+    try {
+      bc = new BroadcastChannel('priority_todo_sync_channel');
+      broadcastChannelRef.current = bc;
+      bc.onmessage = (event) => {
+        if (event.data?.type === 'TASKS_UPDATED' && Array.isArray(event.data.tasks)) {
+          setTasks(event.data.tasks);
+          if (event.data.categories && Array.isArray(event.data.categories)) {
+            setCategoriesList(event.data.categories);
+          }
+        }
+      };
+    } catch (e) {
+      console.warn('BroadcastChannel not supported, using storage events');
+    }
+
+    const handleStorageEvent = (e: StorageEvent) => {
+      if (e.key === STORAGE_KEY && e.newValue) {
+        try {
+          const parsed = JSON.parse(e.newValue);
+          if (Array.isArray(parsed)) setTasks(parsed);
+        } catch (err) {}
+      }
+      if (e.key === CATEGORIES_STORAGE_KEY && e.newValue) {
+        try {
+          const parsed = JSON.parse(e.newValue);
+          if (Array.isArray(parsed)) setCategoriesList(parsed);
+        } catch (err) {}
+      }
+    };
+
+    window.addEventListener('storage', handleStorageEvent);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageEvent);
+      if (bc) bc.close();
+    };
+  }, []);
+
+  // 2. Save tasks to localStorage & Broadcast to all other tabs & Auto-sync to Cloud
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+      // Broadcast to other open tabs on this device
+      if (broadcastChannelRef.current) {
+        broadcastChannelRef.current.postMessage({
+          type: 'TASKS_UPDATED',
+          tasks,
+          categories: categoriesList,
+        });
+      }
+
+      // If connected to a Cloud Sync Key or Supabase, push immediately
       if (syncKey) {
-        pushTasksToCloud(syncKey, tasks, categoriesList).then((success) => {
+        pushTasksToCloud(syncKey, tasks, categoriesList, supabaseConfig).then((success) => {
           if (success) {
             const now = new Date().toISOString();
             setLastSyncedAt(now);
@@ -149,7 +208,7 @@ export function App() {
     } catch (e) {
       console.error('Failed to save tasks', e);
     }
-  }, [tasks, syncKey, categoriesList]);
+  }, [tasks, syncKey, categoriesList, supabaseConfig]);
 
   // Save categories to localStorage
   useEffect(() => {
@@ -160,13 +219,13 @@ export function App() {
     }
   }, [categoriesList]);
 
-  // Background Cloud Pull / Auto-Sync Poller
+  // 3. Background Cloud Pull & Polling Engine
   const handleSyncNow = useCallback(async () => {
     if (!syncKey) return;
     setIsSyncing(true);
     try {
-      const cloudData = await pullTasksFromCloud(syncKey);
-      if (cloudData && Array.isArray(cloudData.tasks)) {
+      const cloudData = await pullTasksFromCloud(syncKey, supabaseConfig);
+      if (cloudData && Array.isArray(cloudData.tasks) && cloudData.tasks.length > 0) {
         setTasks(cloudData.tasks);
         if (cloudData.categories && cloudData.categories.length > 0) {
           setCategoriesList(cloudData.categories);
@@ -175,8 +234,8 @@ export function App() {
         setLastSyncedAt(now);
         localStorage.setItem(LAST_SYNCED_STORAGE_KEY, now);
       } else {
-        // Push initial local dataset to cloud room
-        await pushTasksToCloud(syncKey, tasks, categoriesList);
+        // If empty cloud room, push our existing tasks up to cloud database
+        await pushTasksToCloud(syncKey, tasks, categoriesList, supabaseConfig);
         const now = new Date().toISOString();
         setLastSyncedAt(now);
         localStorage.setItem(LAST_SYNCED_STORAGE_KEY, now);
@@ -184,23 +243,28 @@ export function App() {
     } finally {
       setIsSyncing(false);
     }
-  }, [syncKey, tasks, categoriesList]);
+  }, [syncKey, tasks, categoriesList, supabaseConfig]);
 
-  // Initial pull when syncKey is present or changed
+  // Polling every 15s when active syncKey is set
   useEffect(() => {
     if (syncKey) {
       handleSyncNow();
-      // Periodically sync every 20s
       const interval = setInterval(() => {
         handleSyncNow();
-      }, 20000);
+      }, 15000);
       return () => clearInterval(interval);
     }
   }, [syncKey]);
 
   const handleSetSyncKey = (key: string) => {
-    saveStoredSyncKey(key);
-    setSyncKey(key);
+    const clean = key.trim().toLowerCase();
+    saveStoredSyncKey(clean);
+    setSyncKey(clean);
+  };
+
+  const handleSaveSupabaseConfig = (config: SupabaseConfig | null) => {
+    saveStoredSupabaseConfig(config);
+    setSupabaseConfig(config);
   };
 
   // Combine categories list with any unique task categories
@@ -296,7 +360,7 @@ export function App() {
           if (t.status === 'todo') nextStatus = 'in-progress';
           else if (t.status === 'in-progress') {
             nextStatus = 'completed';
-            // Confetti celebration
+            // Theme-aware confetti celebration
             confetti({
               particleCount: 60,
               spread: 70,
@@ -468,7 +532,7 @@ export function App() {
         )}
       </main>
 
-      {/* Floating Action Button (FAB) on Mobile Screens for quick thumb tap */}
+      {/* Floating Action Button (FAB) on Mobile Screens */}
       <div className="fixed right-5 bottom-5 z-40 sm:hidden">
         <button
           onClick={() => {
@@ -514,6 +578,8 @@ export function App() {
         onSyncNow={handleSyncNow}
         isSyncing={isSyncing}
         lastSyncedAt={lastSyncedAt}
+        supabaseConfig={supabaseConfig}
+        onSaveSupabaseConfig={handleSaveSupabaseConfig}
         theme={theme}
       />
 
