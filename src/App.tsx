@@ -89,6 +89,9 @@ export function App() {
   const themeConfig = THEME_CONFIGS[theme];
   const broadcastChannelRef = useRef<BroadcastChannel | null>(null);
   const lastTaskHashRef = useRef<string>('');
+  // Cooldown: after a local edit, pause remote polling for 15 seconds
+  // so GitHub has time to receive the commit before we pull again
+  const localChangeCooldownRef = useRef<number>(0);
 
   // Apply theme to document element
   useEffect(() => {
@@ -109,8 +112,13 @@ export function App() {
     return tList.map(t => `${t.id}_${t.status}_${t.rank}_${t.pri}_${t.task}`).join('|');
   };
 
-  // 1. Fetch from GitHub and synchronize background updates
+  // 1. Fetch from GitHub — but SKIP if user recently made a local change
   const syncWithRemoteGitHub = useCallback(async () => {
+    // If user edited tasks locally within the last 15 seconds, skip this poll
+    if (Date.now() < localChangeCooldownRef.current) {
+      return;
+    }
+
     try {
       const remoteTasks = await loadTasksFromGitHub();
       if (remoteTasks && Array.isArray(remoteTasks) && remoteTasks.length > 0) {
@@ -126,13 +134,13 @@ export function App() {
     } catch (e) {}
   }, []);
 
-  // Initial fetch on mount + Polling every 5 seconds + on window focus
+  // Initial fetch on mount + Polling every 10 seconds + on window focus
   useEffect(() => {
     syncWithRemoteGitHub();
 
     const interval = setInterval(() => {
       syncWithRemoteGitHub();
-    }, 5000);
+    }, 10000);
 
     const handleFocus = () => {
       syncWithRemoteGitHub();
@@ -199,9 +207,11 @@ export function App() {
         });
       }
 
-      // Auto-commit to GitHub if tasks changed
+      // Auto-commit to GitHub if tasks actually changed
       if (currentHash !== lastTaskHashRef.current) {
         lastTaskHashRef.current = currentHash;
+        // Set 15-second cooldown so polling doesn't overwrite this change
+        localChangeCooldownRef.current = Date.now() + 15000;
         const timeout = setTimeout(() => {
           autoCommitTasksToGitHub(tasks);
         }, 1000);
