@@ -14,9 +14,9 @@ import { ThemeMode } from './types/theme';
 import { THEME_CONFIGS } from './utils/themeConfig';
 import { loadTasksFromGitHub, autoCommitTasksToGitHub } from './utils/githubSync';
 
-const STORAGE_KEY = 'priority_todo_tasks_v1';
+const STORAGE_KEY = 'priority_todo_tasks_v2';
 const THEME_STORAGE_KEY = 'priority_todo_theme_mode_v2';
-const CATEGORIES_STORAGE_KEY = 'priority_todo_categories_v1';
+const CATEGORIES_STORAGE_KEY = 'priority_todo_categories_v2';
 
 const DEFAULT_CATEGORIES = [
   'DevOps',
@@ -45,6 +45,7 @@ export function App() {
     return 'dark';
   });
 
+  // Local-First: Load immediately from localStorage with zero delay
   const [tasks, setTasks] = useState<TodoTask[]>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
@@ -88,7 +89,7 @@ export function App() {
 
   const themeConfig = THEME_CONFIGS[theme];
   const broadcastChannelRef = useRef<BroadcastChannel | null>(null);
-  const isInternalUpdateRef = useRef(false);
+  const hasInitializedRef = useRef(false);
 
   // Apply theme to document element
   useEffect(() => {
@@ -104,13 +105,29 @@ export function App() {
     }
   }, [theme]);
 
-  // 1. Initial Load: Fetch latest tasks from GitHub data/tasks.json
+  // 1. Initial Load: Fetch latest tasks from GitHub without overwriting newly added local tasks
   useEffect(() => {
+    if (hasInitializedRef.current) return;
+    hasInitializedRef.current = true;
+
     loadTasksFromGitHub().then((ghTasks) => {
       if (ghTasks && Array.isArray(ghTasks) && ghTasks.length > 0) {
-        isInternalUpdateRef.current = true;
-        setTasks(ghTasks);
-        setTimeout(() => { isInternalUpdateRef.current = false; }, 200);
+        setTasks((currentTasks) => {
+          // If user already has tasks in localStorage, merge smartly so no local tasks are lost
+          const localSaved = localStorage.getItem(STORAGE_KEY);
+          if (localSaved) {
+            try {
+              const parsed = JSON.parse(localSaved);
+              if (Array.isArray(parsed) && parsed.length > 0) {
+                // Keep local tasks as primary source of truth, but add any new remote ones
+                const currentIdSet = new Set(parsed.map((t: TodoTask) => t.id));
+                const remoteOnly = ghTasks.filter(t => !currentIdSet.has(t.id));
+                return remoteOnly.length > 0 ? [...parsed, ...remoteOnly] : parsed;
+              }
+            } catch (e) {}
+          }
+          return ghTasks;
+        });
       }
     });
   }, []);
@@ -119,16 +136,14 @@ export function App() {
   useEffect(() => {
     let bc: BroadcastChannel | null = null;
     try {
-      bc = new BroadcastChannel('priority_todo_sync_channel');
+      bc = new BroadcastChannel('priority_todo_sync_channel_v2');
       broadcastChannelRef.current = bc;
       bc.onmessage = (event) => {
         if (event.data?.type === 'TASKS_UPDATED' && Array.isArray(event.data.tasks)) {
-          isInternalUpdateRef.current = true;
           setTasks(event.data.tasks);
           if (event.data.categories && Array.isArray(event.data.categories)) {
             setCategoriesList(event.data.categories);
           }
-          setTimeout(() => { isInternalUpdateRef.current = false; }, 200);
         }
       };
     } catch (e) {}
@@ -138,9 +153,7 @@ export function App() {
         try {
           const parsed = JSON.parse(e.newValue);
           if (Array.isArray(parsed)) {
-            isInternalUpdateRef.current = true;
             setTasks(parsed);
-            setTimeout(() => { isInternalUpdateRef.current = false; }, 200);
           }
         } catch (err) {}
       }
@@ -154,12 +167,12 @@ export function App() {
     };
   }, []);
 
-  // 3. Save tasks to localStorage, Broadcast to open tabs, Auto-commit to GitHub
+  // 3. Save tasks immediately to localStorage, broadcast across tabs, and auto-commit to GitHub
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
 
-      if (broadcastChannelRef.current && !isInternalUpdateRef.current) {
+      if (broadcastChannelRef.current) {
         broadcastChannelRef.current.postMessage({
           type: 'TASKS_UPDATED',
           tasks,
@@ -167,13 +180,11 @@ export function App() {
         });
       }
 
-      // Background auto-commit to GitHub data/tasks.json (debounced 1.5s)
-      if (!isInternalUpdateRef.current) {
-        const timeout = setTimeout(() => {
-          autoCommitTasksToGitHub(tasks);
-        }, 1500);
-        return () => clearTimeout(timeout);
-      }
+      // Background auto-commit to GitHub (debounced 1.5s)
+      const timeout = setTimeout(() => {
+        autoCommitTasksToGitHub(tasks);
+      }, 1500);
+      return () => clearTimeout(timeout);
     } catch (e) {
       console.error('Failed to save tasks', e);
     }
@@ -318,7 +329,7 @@ export function App() {
       );
     } else {
       const newTask: TodoTask = {
-        id: `task-${Date.now()}`,
+        id: `task-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
         rank: taskData.rank || tasks.length + 1,
         task: taskData.task,
         pri: taskData.pri,
