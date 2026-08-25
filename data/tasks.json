@@ -1,16 +1,5 @@
 [
   {
-    "id": "task-1787677973187-ps17",
-    "rank": 1,
-    "task": "nnnnn",
-    "pri": 100,
-    "time": "2-3h",
-    "description": "",
-    "status": "todo",
-    "category": "DevOps",
-    "createdAt": "2026-08-25T17:12:53.187Z"
-  },
-  {
     "id": "task-1",
     "rank": 1,
     "task": "CI/CD",
