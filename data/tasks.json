@@ -6,7 +6,7 @@
     "pri": 100,
     "time": "6-8h",
     "description": "Test/build/deploy automation",
-    "status": "todo",
+    "status": "in-progress",
     "category": "DevOps",
     "createdAt": "2026-08-25T10:00:00.000Z"
   },
