@@ -1,16 +1,5 @@
 [
   {
-    "id": "task-1",
-    "rank": 1,
-    "task": "CI/CD",
-    "pri": 100,
-    "time": "6-8h",
-    "description": "Test/build/deploy automation",
-    "status": "in-progress",
-    "category": "DevOps",
-    "createdAt": "2026-08-25T10:00:00.000Z"
-  },
-  {
     "id": "task-2",
     "rank": 2,
     "task": "Docker",
@@ -768,5 +757,17 @@
     "status": "todo",
     "category": "Cloud",
     "createdAt": "2026-08-25T10:15:00.000Z"
+  },
+  {
+    "id": "task-1",
+    "rank": 1,
+    "task": "CI/CD",
+    "pri": 100,
+    "time": "6-8h",
+    "description": "Test/build/deploy automation",
+    "status": "completed",
+    "category": "DevOps",
+    "createdAt": "2026-08-25T10:00:00.000Z",
+    "completedAt": "2026-09-02T04:27:17.496Z"
   }
 ]
