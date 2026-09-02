@@ -4,13 +4,134 @@ A modern, high-performance **Priority-Driven To-Do & Execution Matrix** web appl
 
 Designed with **Apple (macOS & iOS) minimalist aesthetics**, **5 story-driven thematic environments**, **real-time cross-device cloud synchronization** (phone & laptop), **GitHub as a Database**, and **direct Supabase integration without a backend**.
 
+![Priority ToDo App — Emerald Matrix Oasis Theme](public/screenshot.png)
+
+---
+
+## 🌐 Live Demo
+
+**[totodo-iota.vercel.app](https://totodo-iota.vercel.app)**
+
+> No installation needed — open the link on any device and start managing your goals instantly.
+
+---
+
+## 📥 Download & Installation
+
+### Option 1: Use Online (No Download)
+
+Simply visit **[totodo-iota.vercel.app](https://totodo-iota.vercel.app)** in any modern browser (Chrome, Firefox, Safari, Edge). Works on both desktop and mobile.
+
+### Option 2: Download & Run Locally
+
+#### Prerequisites
+- **[Node.js](https://nodejs.org/)** v18 or later
+- **npm** (comes with Node.js) or **yarn**
+- **Git** ([download here](https://git-scm.com/downloads))
+
+#### Step-by-step
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/aroshwijesinghe/ToDo.git
+
+# 2. Navigate into the project folder
+cd ToDo
+
+# 3. Install all dependencies
+npm install
+
+# 4. Start the development server
+npm run dev
+```
+
+Open **`http://localhost:5173`** in your browser — the app is now running locally! 🎉
+
+#### Build for Production
+
+```bash
+# Create an optimized production build
+npm run build
+
+# Preview the production build locally
+npm run preview
+```
+
+### Option 3: Download as ZIP (No Git Required)
+
+1. Go to **[github.com/aroshwijesinghe/ToDo](https://github.com/aroshwijesinghe/ToDo)**
+2. Click the green **"Code"** button → **"Download ZIP"**
+3. Extract the ZIP file
+4. Open a terminal in the extracted folder
+5. Run `npm install` then `npm run dev`
+
+---
+
+## 🧠 How It Works
+
+### Architecture Overview
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    Browser (Frontend)                    │
+│  React 19 + TypeScript + Tailwind CSS v4 + Vite         │
+│                                                         │
+│  ┌─────────────┐  ┌──────────────┐  ┌───────────────┐  │
+│  │ Task Matrix  │  │ Theme Engine │  │ Sync Manager  │  │
+│  │ (CRUD ops)   │  │ (5 themes)   │  │ (SSE + BCS)   │  │
+│  └──────┬───────┘  └──────────────┘  └───────┬───────┘  │
+│         │                                     │         │
+└─────────┼─────────────────────────────────────┼─────────┘
+          │                                     │
+          ▼                                     ▼
+┌──────────────────┐              ┌──────────────────────┐
+│  GitHub REST API │              │  Supabase (Postgres)  │
+│  data/tasks.json │              │  Direct from browser  │
+└──────────────────┘              └──────────────────────┘
+```
+
+### How Tasks Work
+
+1. **Create a Task** → Click **"+ New Task"** button → Fill in title, priority (0-100), estimated time, category, and description.
+2. **Priority Scoring** → Each task gets a weighted activity score calculated by `Priority × Duration (in hours)` — higher priority + longer tasks rise to the top.
+3. **Status Tracking** → Track tasks through three states: **To Do** → **In Progress** → **Completed** (with confetti celebration! 🎊).
+4. **Edit & Delete** → Click the ✏️ pencil icon to edit or the 🗑️ trash icon to delete any task.
+
+### How Cross-Device Sync Works
+
+1. **Create a Sync Room** → Choose a memorable room name (e.g., `arosh`).
+2. **Connect from Any Device** → Open the app on your phone/laptop and enter the same room name.
+3. **Instant QR Code Pairing** → Or simply scan the QR code displayed on your desktop with your phone camera.
+4. **Real-Time Updates** → Changes propagate across all connected devices in under 200ms via **Server-Sent Events (SSE)**.
+5. **Multi-Tab Support** → Even works across multiple browser tabs using the **BroadcastChannel API**.
+
+### How Data Storage Works
+
+You have two options for persisting your tasks:
+
+| Feature | GitHub (Option A) | Supabase (Option B) |
+| :--- | :--- | :--- |
+| **Storage** | `data/tasks.json` in your repo | PostgreSQL database |
+| **Cost** | Free forever | Free tier available |
+| **History** | Full Git commit history | Database records |
+| **Backend** | No backend needed | No backend needed |
+| **Setup** | GitHub token only | Supabase URL + API key |
+
+### How Themes Work
+
+Switch between **5 immersive thematic environments** via the theme selector. Each theme changes:
+- Background colors & gradients
+- Card glass effects & borders
+- Accent colors for badges & buttons
+- An ambient story tagline for the environment
+
 ---
 
 ## 🌟 Key Highlights & Features
 
 ### 1. 🍎 Apple Minimalist Design System
 - **Frosted Glass & Depth**: Translucent cards with `backdrop-blur-2xl`, micro-borders, and dynamic ambient glow cones.
-- **Weighted "toDo" Activity Card**: Progress calculated dynamically by $(\text{Priority} \times \text{Duration in Hours})$ with traveling light shimmer animations.
+- **Weighted "toDo" Activity Card**: Progress calculated dynamically by $(\\text{Priority} \\times \\text{Duration in Hours})$ with traveling light shimmer animations.
 - **iOS Segmented Controls & Micro-Interactions**: Smooth spring checkboxes, customizable priority heat badges, and elevation lift on hover.
 - **Mobile-First Experience**: Automatically adapts on phones into touch-friendly **Mobile Cards** and an **iOS Bottom Sheet Modal** with a floating action button (FAB).
 
@@ -32,7 +153,7 @@ Switch between 5 distinct environments, each with tailored matching palettes for
 
 ### 3. ☁️ Real-Time Cross-Device & Multi-Tab Synchronization
 - **Zero Data Loss Guarantee**: Local-first architecture stores data safely on your device first.
-- **Real-Time Pub/Sub with Server-Sent Events (SSE)**: Synchronizes changes across **Phones**, **Laptops**, and **Incognito / Private Tabs** in $<200\text{ms}$ without refreshing.
+- **Real-Time Pub/Sub with Server-Sent Events (SSE)**: Synchronizes changes across **Phones**, **Laptops**, and **Incognito / Private Tabs** in $<200\\text{ms}$ without refreshing.
 - **Instant QR Code Pairing**: Scan the QR code with your phone camera to open and link your tasks instantly.
 - **Memorable Sync Rooms**: Choose any name (e.g. `arosh`) to connect across devices.
 
@@ -66,32 +187,6 @@ interface TodoTask {
   createdAt: string;
   completedAt?: string;
 }
-```
-
----
-
-## 🚀 Quick Start (Local Development)
-
-### 1. Clone the repository
-```bash
-git clone https://github.com/aroshwijesinghe/ToDo.git
-cd ToDo
-```
-
-### 2. Install dependencies
-```bash
-npm install
-```
-
-### 3. Start development server
-```bash
-npm run dev
-```
-Open **`http://localhost:5173`** in your browser.
-
-### 4. Build for Production
-```bash
-npm run build
 ```
 
 ---
