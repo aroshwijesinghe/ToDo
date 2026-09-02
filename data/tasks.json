@@ -765,9 +765,8 @@
     "pri": 100,
     "time": "6-8h",
     "description": "Test/build/deploy automation",
-    "status": "completed",
+    "status": "todo",
     "category": "DevOps",
-    "createdAt": "2026-08-25T10:00:00.000Z",
-    "completedAt": "2026-09-02T04:27:17.496Z"
+    "createdAt": "2026-08-25T10:00:00.000Z"
   }
 ]
