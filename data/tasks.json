@@ -757,16 +757,5 @@
     "status": "todo",
     "category": "Cloud",
     "createdAt": "2026-08-25T10:15:00.000Z"
-  },
-  {
-    "id": "task-1",
-    "rank": 1,
-    "task": "CI/CD",
-    "pri": 100,
-    "time": "6-8h",
-    "description": "Test/build/deploy automation",
-    "status": "todo",
-    "category": "DevOps",
-    "createdAt": "2026-08-25T10:00:00.000Z"
   }
 ]
