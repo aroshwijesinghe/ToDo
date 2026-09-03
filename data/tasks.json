@@ -374,17 +374,6 @@
     "createdAt": "2026-08-25T12:50:00.000Z"
   },
   {
-    "id": "init-2",
-    "rank": 2,
-    "task": "FastAPI",
-    "pri": 92,
-    "time": "2-3h",
-    "description": "API structure, pydantic models, async endpoints",
-    "status": "in-progress",
-    "category": "Backend",
-    "createdAt": "2026-08-25T15:00:00.000Z"
-  },
-  {
     "id": "init-3",
     "rank": 3,
     "task": "Docker",
@@ -757,6 +746,18 @@
     "status": "todo",
     "category": "Cloud",
     "createdAt": "2026-08-25T10:15:00.000Z"
+  },
+  {
+    "id": "init-2",
+    "rank": 2,
+    "task": "FastAPI",
+    "pri": 92,
+    "time": "2-3h",
+    "description": "API structure, pydantic models, async endpoints",
+    "status": "completed",
+    "category": "Backend",
+    "createdAt": "2026-08-25T15:00:00.000Z",
+    "completedAt": "2026-09-03T11:39:49.973Z"
   },
   {
     "id": "init-1",
