@@ -374,17 +374,6 @@
     "createdAt": "2026-08-25T12:50:00.000Z"
   },
   {
-    "id": "init-1",
-    "rank": 1,
-    "task": "CI/CD Pipeline",
-    "pri": 95,
-    "time": "3-4h",
-    "description": "Test/build/deploy automation (GitHub Actions, GitLab CI)",
-    "status": "in-progress",
-    "category": "DevOps",
-    "createdAt": "2026-08-25T15:00:00.000Z"
-  },
-  {
     "id": "init-2",
     "rank": 2,
     "task": "FastAPI",
@@ -768,5 +757,17 @@
     "status": "todo",
     "category": "Cloud",
     "createdAt": "2026-08-25T10:15:00.000Z"
+  },
+  {
+    "id": "init-1",
+    "rank": 1,
+    "task": "CI/CD Pipeline",
+    "pri": 95,
+    "time": "3-4h",
+    "description": "Test/build/deploy automation (GitHub Actions, GitLab CI)",
+    "status": "completed",
+    "category": "DevOps",
+    "createdAt": "2026-08-25T15:00:00.000Z",
+    "completedAt": "2026-09-03T09:43:44.004Z"
   }
 ]
