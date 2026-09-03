@@ -11,17 +11,6 @@
     "createdAt": "2026-09-02T05:17:07.125Z"
   },
   {
-    "id": "task-2",
-    "rank": 2,
-    "task": "Docker",
-    "pri": 93,
-    "time": "3-4h",
-    "description": "Package apps + dependencies",
-    "status": "todo",
-    "category": "DevOps",
-    "createdAt": "2026-08-25T10:05:00.000Z"
-  },
-  {
     "id": "task-3",
     "rank": 3,
     "task": "Dockerize project",
