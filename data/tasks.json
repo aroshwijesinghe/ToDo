@@ -380,7 +380,7 @@
     "pri": 92,
     "time": "2-3h",
     "description": "API structure, pydantic models, async endpoints",
-    "status": "todo",
+    "status": "in-progress",
     "category": "Backend",
     "createdAt": "2026-08-25T15:00:00.000Z"
   },
