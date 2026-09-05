@@ -1,5 +1,16 @@
 [
   {
+    "id": "task-1788612580901-5smi",
+    "rank": 70,
+    "task": "hugging face profile like gihtub",
+    "pri": 71,
+    "time": "2-3h",
+    "description": "",
+    "status": "todo",
+    "category": "DevOps",
+    "createdAt": "2026-09-05T12:49:40.901Z"
+  },
+  {
     "id": "task-1788326227125-73o3",
     "rank": 9,
     "task": "github agents study",
