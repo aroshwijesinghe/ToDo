@@ -1,5 +1,16 @@
 [
   {
+    "id": "task-1788682338050-evzc",
+    "rank": 71,
+    "task": "hand gesture project",
+    "pri": 33,
+    "time": "2-3h",
+    "description": "",
+    "status": "todo",
+    "category": "Machine Learning",
+    "createdAt": "2026-09-06T08:12:18.050Z"
+  },
+  {
     "id": "task-1788612580901-5smi",
     "rank": 70,
     "task": "hugging face profile like gihtub",
