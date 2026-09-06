@@ -352,17 +352,6 @@
     "createdAt": "2026-08-25T12:45:00.000Z"
   },
   {
-    "id": "task-35",
-    "rank": 35,
-    "task": "B&W/vintage GitHub image",
-    "pri": 25,
-    "time": "30-60m",
-    "description": "GitHub profile improvement",
-    "status": "todo",
-    "category": "Personal",
-    "createdAt": "2026-08-25T12:50:00.000Z"
-  },
-  {
     "id": "init-3",
     "rank": 3,
     "task": "Docker",
@@ -735,6 +724,18 @@
     "status": "todo",
     "category": "Cloud",
     "createdAt": "2026-08-25T10:15:00.000Z"
+  },
+  {
+    "id": "task-35",
+    "rank": 35,
+    "task": "B&W/vintage GitHub image",
+    "pri": 25,
+    "time": "30-60m",
+    "description": "GitHub profile improvement",
+    "status": "completed",
+    "category": "Personal",
+    "createdAt": "2026-08-25T12:50:00.000Z",
+    "completedAt": "2026-09-06T08:07:19.355Z"
   },
   {
     "id": "task-8",
