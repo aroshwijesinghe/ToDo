@@ -44,17 +44,6 @@
     "createdAt": "2026-09-02T05:17:07.125Z"
   },
   {
-    "id": "task-3",
-    "rank": 3,
-    "task": "Dockerize project",
-    "pri": 91,
-    "time": "4-6h",
-    "description": "Dockerize real project",
-    "status": "in-progress",
-    "category": "DevOps",
-    "createdAt": "2026-08-25T10:10:00.000Z"
-  },
-  {
     "id": "task-5",
     "rank": 5,
     "task": "GitHub Copilot",
@@ -735,6 +724,18 @@
     "status": "todo",
     "category": "Cloud",
     "createdAt": "2026-08-25T10:15:00.000Z"
+  },
+  {
+    "id": "task-3",
+    "rank": 3,
+    "task": "Dockerize project",
+    "pri": 91,
+    "time": "4-6h",
+    "description": "Dockerize real project",
+    "status": "completed",
+    "category": "DevOps",
+    "createdAt": "2026-08-25T10:10:00.000Z",
+    "completedAt": "2026-09-12T10:22:22.099Z"
   },
   {
     "id": "init-3",
