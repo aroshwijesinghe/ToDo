@@ -396,17 +396,6 @@
     "createdAt": "2026-08-25T12:45:00.000Z"
   },
   {
-    "id": "init-4",
-    "rank": 4,
-    "task": "Hugging Face Ecosystem",
-    "pri": 90,
-    "time": "3-5h",
-    "description": "Pipelines, fine-tuning scripts, Model Hub usage, Spaces deployment",
-    "status": "todo",
-    "category": "AI Tools",
-    "createdAt": "2026-08-25T15:00:00.000Z"
-  },
-  {
     "id": "init-5",
     "rank": 5,
     "task": "Model Quantization",
@@ -757,6 +746,18 @@
     "status": "todo",
     "category": "Cloud",
     "createdAt": "2026-08-25T10:15:00.000Z"
+  },
+  {
+    "id": "init-4",
+    "rank": 4,
+    "task": "Hugging Face Ecosystem",
+    "pri": 90,
+    "time": "3-5h",
+    "description": "Pipelines, fine-tuning scripts, Model Hub usage, Spaces deployment",
+    "status": "completed",
+    "category": "AI Tools",
+    "createdAt": "2026-08-25T15:00:00.000Z",
+    "completedAt": "2026-09-12T12:43:25.391Z"
   },
   {
     "id": "task-3",
