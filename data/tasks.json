@@ -743,9 +743,10 @@
     "pri": 88,
     "time": "5-7h",
     "description": "Cloud + deployment basics",
-    "status": "in-progress",
+    "status": "completed",
     "category": "Cloud",
-    "createdAt": "2026-08-25T10:15:00.000Z"
+    "createdAt": "2026-08-25T10:15:00.000Z",
+    "completedAt": "2026-09-14T14:01:12.713Z"
   },
   {
     "id": "init-4",
