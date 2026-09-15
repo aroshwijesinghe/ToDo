@@ -396,17 +396,6 @@
     "createdAt": "2026-08-25T12:45:00.000Z"
   },
   {
-    "id": "init-5",
-    "rank": 5,
-    "task": "Model Quantization",
-    "pri": 88,
-    "time": "3-4h",
-    "description": "Bitsandbytes, GGUF/llama.cpp, AWQ for efficient deployment",
-    "status": "in-progress",
-    "category": "Machine Learning",
-    "createdAt": "2026-08-25T15:00:00.000Z"
-  },
-  {
     "id": "init-6",
     "rank": 6,
     "task": "vLLM / TensorRT-LLM",
@@ -746,6 +735,18 @@
     "status": "todo",
     "category": "Cloud",
     "createdAt": "2026-08-25T10:15:00.000Z"
+  },
+  {
+    "id": "init-5",
+    "rank": 5,
+    "task": "Model Quantization",
+    "pri": 88,
+    "time": "3-4h",
+    "description": "Bitsandbytes, GGUF/llama.cpp, AWQ for efficient deployment",
+    "status": "completed",
+    "category": "Machine Learning",
+    "createdAt": "2026-08-25T15:00:00.000Z",
+    "completedAt": "2026-09-15T13:32:26.560Z"
   },
   {
     "id": "task-1788873139128-5u3i",
