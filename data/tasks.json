@@ -402,7 +402,7 @@
     "pri": 88,
     "time": "3-4h",
     "description": "Bitsandbytes, GGUF/llama.cpp, AWQ for efficient deployment",
-    "status": "todo",
+    "status": "in-progress",
     "category": "Machine Learning",
     "createdAt": "2026-08-25T15:00:00.000Z"
   },
