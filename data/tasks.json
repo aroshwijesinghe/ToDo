@@ -44,17 +44,6 @@
     "createdAt": "2026-09-12T10:23:20.356Z"
   },
   {
-    "id": "task-1788873139128-5u3i",
-    "rank": 72,
-    "task": "langraph",
-    "pri": 89,
-    "time": "2-3h",
-    "description": "",
-    "status": "in-progress",
-    "category": "DevOps",
-    "createdAt": "2026-09-08T13:12:19.128Z"
-  },
-  {
     "id": "task-1788682338050-evzc",
     "rank": 71,
     "task": "hand gesture project",
@@ -757,6 +746,18 @@
     "status": "todo",
     "category": "Cloud",
     "createdAt": "2026-08-25T10:15:00.000Z"
+  },
+  {
+    "id": "task-1788873139128-5u3i",
+    "rank": 72,
+    "task": "langraph",
+    "pri": 89,
+    "time": "2-3h",
+    "description": "",
+    "status": "completed",
+    "category": "DevOps",
+    "createdAt": "2026-09-08T13:12:19.128Z",
+    "completedAt": "2026-09-15T04:20:31.097Z"
   },
   {
     "id": "init-4",
