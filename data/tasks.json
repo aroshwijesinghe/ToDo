@@ -407,17 +407,6 @@
     "createdAt": "2026-08-25T12:45:00.000Z"
   },
   {
-    "id": "init-6",
-    "rank": 6,
-    "task": "vLLM / TensorRT-LLM",
-    "pri": 88,
-    "time": "3-4h",
-    "description": "High-throughput LLM serving, paged attention, continuous batching",
-    "status": "todo",
-    "category": "Machine Learning",
-    "createdAt": "2026-08-25T15:00:00.000Z"
-  },
-  {
     "id": "init-7",
     "rank": 7,
     "task": "Fine-Tuning (LoRA/QLoRA)",
@@ -757,6 +746,18 @@
     "status": "todo",
     "category": "Machine Learning",
     "createdAt": "2026-08-25T15:00:00.000Z"
+  },
+  {
+    "id": "init-6",
+    "rank": 6,
+    "task": "vLLM / TensorRT-LLM",
+    "pri": 88,
+    "time": "3-4h",
+    "description": "High-throughput LLM serving, paged attention, continuous batching",
+    "status": "completed",
+    "category": "Machine Learning",
+    "createdAt": "2026-08-25T15:00:00.000Z",
+    "completedAt": "2026-09-16T06:25:25.915Z"
   },
   {
     "id": "task-1788873139128-5u3i",
