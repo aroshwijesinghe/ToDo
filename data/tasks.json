@@ -721,9 +721,10 @@
     "pri": 88,
     "time": "3-4h",
     "description": "Bitsandbytes, GGUF/llama.cpp, AWQ for efficient deployment",
-    "status": "todo",
+    "status": "completed",
     "category": "Machine Learning",
-    "createdAt": "2026-08-25T15:00:00.000Z"
+    "createdAt": "2026-08-25T15:00:00.000Z",
+    "completedAt": "2026-09-16T11:20:43.350Z"
   },
   {
     "id": "task-5",
