@@ -88,17 +88,6 @@
     "createdAt": "2026-09-02T05:17:07.125Z"
   },
   {
-    "id": "task-5",
-    "rank": 5,
-    "task": "GitHub Copilot",
-    "pri": 86,
-    "time": "2-3h",
-    "description": "AI coding assistant",
-    "status": "in-progress",
-    "category": "AI Tools",
-    "createdAt": "2026-08-25T10:20:00.000Z"
-  },
-  {
     "id": "task-6",
     "rank": 6,
     "task": "MCP servers",
@@ -735,6 +724,18 @@
     "status": "todo",
     "category": "Machine Learning",
     "createdAt": "2026-08-25T15:00:00.000Z"
+  },
+  {
+    "id": "task-5",
+    "rank": 5,
+    "task": "GitHub Copilot",
+    "pri": 86,
+    "time": "2-3h",
+    "description": "AI coding assistant",
+    "status": "completed",
+    "category": "AI Tools",
+    "createdAt": "2026-08-25T10:20:00.000Z",
+    "completedAt": "2026-09-16T07:24:59.365Z"
   },
   {
     "id": "task-4",
