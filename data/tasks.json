@@ -424,7 +424,7 @@
     "pri": 87,
     "time": "4-6h",
     "description": "PEFT library, SFTTrainer, custom dataset fine-tuning pipeline",
-    "status": "todo",
+    "status": "in-progress",
     "category": "Machine Learning",
     "createdAt": "2026-08-25T15:00:00.000Z"
   },
