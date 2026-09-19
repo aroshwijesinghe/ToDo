@@ -132,17 +132,6 @@
     "createdAt": "2026-09-02T05:17:07.125Z"
   },
   {
-    "id": "task-7",
-    "rank": 7,
-    "task": "AI individual project",
-    "pri": 39,
-    "time": "15-25h",
-    "description": "AI portfolio project",
-    "status": "todo",
-    "category": "Projects",
-    "createdAt": "2026-08-25T10:30:00.000Z"
-  },
-  {
     "id": "task-9",
     "rank": 9,
     "task": "PyTorch",
@@ -691,6 +680,18 @@
     "status": "todo",
     "category": "Data Science",
     "createdAt": "2026-08-25T15:00:00.000Z"
+  },
+  {
+    "id": "task-7",
+    "rank": 7,
+    "task": "AI individual project",
+    "pri": 39,
+    "time": "15-25h",
+    "description": "AI portfolio project",
+    "status": "completed",
+    "category": "Projects",
+    "createdAt": "2026-08-25T10:30:00.000Z",
+    "completedAt": "2026-09-19T16:46:30.329Z"
   },
   {
     "id": "task-34",
