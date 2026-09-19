@@ -473,17 +473,6 @@
     "createdAt": "2026-08-25T15:00:00.000Z"
   },
   {
-    "id": "init-15",
-    "rank": 15,
-    "task": "Celery + RabbitMQ/Redis",
-    "pri": 80,
-    "time": "3-4h",
-    "description": "Async task queues, background processing, distributed tasks",
-    "status": "todo",
-    "category": "Backend",
-    "createdAt": "2026-08-25T15:00:00.000Z"
-  },
-  {
     "id": "init-16",
     "rank": 16,
     "task": "Kubernetes Basics",
@@ -702,6 +691,18 @@
     "status": "todo",
     "category": "Writing",
     "createdAt": "2026-08-25T15:00:00.000Z"
+  },
+  {
+    "id": "init-15",
+    "rank": 15,
+    "task": "Celery + RabbitMQ/Redis",
+    "pri": 80,
+    "time": "3-4h",
+    "description": "Async task queues, background processing, distributed tasks",
+    "status": "completed",
+    "category": "Backend",
+    "createdAt": "2026-08-25T15:00:00.000Z",
+    "completedAt": "2026-09-19T09:19:01.047Z"
   },
   {
     "id": "task-6",
