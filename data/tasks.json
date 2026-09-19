@@ -88,17 +88,6 @@
     "createdAt": "2026-09-02T05:17:07.125Z"
   },
   {
-    "id": "task-6",
-    "rank": 6,
-    "task": "MCP servers",
-    "pri": 85,
-    "time": "3-4h",
-    "description": "AI + external tools/data",
-    "status": "in-progress",
-    "category": "AI Tools",
-    "createdAt": "2026-08-25T10:25:00.000Z"
-  },
-  {
     "id": "task-7",
     "rank": 7,
     "task": "AI individual project",
@@ -713,6 +702,18 @@
     "status": "todo",
     "category": "Writing",
     "createdAt": "2026-08-25T15:00:00.000Z"
+  },
+  {
+    "id": "task-6",
+    "rank": 6,
+    "task": "MCP servers",
+    "pri": 85,
+    "time": "3-4h",
+    "description": "AI + external tools/data",
+    "status": "completed",
+    "category": "AI Tools",
+    "createdAt": "2026-08-25T10:25:00.000Z",
+    "completedAt": "2026-09-19T09:17:53.306Z"
   },
   {
     "id": "init-5",
