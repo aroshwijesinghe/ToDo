@@ -319,17 +319,6 @@
     "createdAt": "2026-08-25T12:15:00.000Z"
   },
   {
-    "id": "task-29",
-    "rank": 29,
-    "task": "Clerk login + password fix",
-    "pri": 48,
-    "time": "2-5h",
-    "description": "Authentication fix",
-    "status": "todo",
-    "category": "Backend",
-    "createdAt": "2026-08-25T12:20:00.000Z"
-  },
-  {
     "id": "task-30",
     "rank": 30,
     "task": "ML article",
@@ -691,6 +680,18 @@
     "status": "todo",
     "category": "Writing",
     "createdAt": "2026-08-25T15:00:00.000Z"
+  },
+  {
+    "id": "task-29",
+    "rank": 29,
+    "task": "Clerk login + password fix",
+    "pri": 48,
+    "time": "2-5h",
+    "description": "Authentication fix",
+    "status": "completed",
+    "category": "Backend",
+    "createdAt": "2026-08-25T12:20:00.000Z",
+    "completedAt": "2026-09-19T09:19:59.099Z"
   },
   {
     "id": "init-15",
