@@ -407,17 +407,6 @@
     "createdAt": "2026-08-25T12:40:00.000Z"
   },
   {
-    "id": "task-34",
-    "rank": 34,
-    "task": "LLM Sinhala word workflow",
-    "pri": 30,
-    "time": "1-2h",
-    "description": "Sinhala word explanations",
-    "status": "in-progress",
-    "category": "AI Tools",
-    "createdAt": "2026-08-25T12:45:00.000Z"
-  },
-  {
     "id": "init-8",
     "rank": 8,
     "task": "RAG Architecture",
@@ -702,6 +691,18 @@
     "status": "todo",
     "category": "Data Science",
     "createdAt": "2026-08-25T15:00:00.000Z"
+  },
+  {
+    "id": "task-34",
+    "rank": 34,
+    "task": "LLM Sinhala word workflow",
+    "pri": 30,
+    "time": "1-2h",
+    "description": "Sinhala word explanations",
+    "status": "completed",
+    "category": "AI Tools",
+    "createdAt": "2026-08-25T12:45:00.000Z",
+    "completedAt": "2026-09-19T16:46:23.702Z"
   },
   {
     "id": "init-35",
