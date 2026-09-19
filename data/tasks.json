@@ -418,17 +418,6 @@
     "createdAt": "2026-08-25T12:45:00.000Z"
   },
   {
-    "id": "init-7",
-    "rank": 7,
-    "task": "Fine-Tuning (LoRA/QLoRA)",
-    "pri": 87,
-    "time": "4-6h",
-    "description": "PEFT library, SFTTrainer, custom dataset fine-tuning pipeline",
-    "status": "in-progress",
-    "category": "Machine Learning",
-    "createdAt": "2026-08-25T15:00:00.000Z"
-  },
-  {
     "id": "init-8",
     "rank": 8,
     "task": "RAG Architecture",
@@ -724,6 +713,18 @@
     "status": "todo",
     "category": "Writing",
     "createdAt": "2026-08-25T15:00:00.000Z"
+  },
+  {
+    "id": "init-7",
+    "rank": 7,
+    "task": "Fine-Tuning (LoRA/QLoRA)",
+    "pri": 87,
+    "time": "4-6h",
+    "description": "PEFT library, SFTTrainer, custom dataset fine-tuning pipeline",
+    "status": "completed",
+    "category": "Machine Learning",
+    "createdAt": "2026-08-25T15:00:00.000Z",
+    "completedAt": "2026-09-19T15:31:29.096Z"
   },
   {
     "id": "task-29",
