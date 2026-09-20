@@ -413,7 +413,7 @@
     "pri": 87,
     "time": "4-6h",
     "description": "Chunking, embedding models, vector stores, hybrid search, reranking",
-    "status": "todo",
+    "status": "in-progress",
     "category": "AI Tools",
     "createdAt": "2026-08-25T15:00:00.000Z"
   },
