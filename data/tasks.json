@@ -407,17 +407,6 @@
     "createdAt": "2026-08-25T12:40:00.000Z"
   },
   {
-    "id": "init-8",
-    "rank": 8,
-    "task": "RAG Architecture",
-    "pri": 87,
-    "time": "4-6h",
-    "description": "Chunking, embedding models, vector stores, hybrid search, reranking",
-    "status": "in-progress",
-    "category": "AI Tools",
-    "createdAt": "2026-08-25T15:00:00.000Z"
-  },
-  {
     "id": "init-9",
     "rank": 9,
     "task": "PostgreSQL + pgvector",
@@ -691,6 +680,18 @@
     "status": "todo",
     "category": "Data Science",
     "createdAt": "2026-08-25T15:00:00.000Z"
+  },
+  {
+    "id": "init-8",
+    "rank": 8,
+    "task": "RAG Architecture",
+    "pri": 87,
+    "time": "4-6h",
+    "description": "Chunking, embedding models, vector stores, hybrid search, reranking",
+    "status": "completed",
+    "category": "AI Tools",
+    "createdAt": "2026-08-25T15:00:00.000Z",
+    "completedAt": "2026-09-20T12:21:02.367Z"
   },
   {
     "id": "task-7",
