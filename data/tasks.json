@@ -385,17 +385,6 @@
     "createdAt": "2026-08-25T12:15:00.000Z"
   },
   {
-    "id": "task-30",
-    "rank": 30,
-    "task": "ML article",
-    "pri": 45,
-    "time": "3-5h",
-    "description": "ML technical article",
-    "status": "todo",
-    "category": "Writing",
-    "createdAt": "2026-08-25T12:25:00.000Z"
-  },
-  {
     "id": "task-31",
     "rank": 31,
     "task": "2 LinkedIn articles/month",
@@ -680,6 +669,18 @@
     "status": "todo",
     "category": "Data Science",
     "createdAt": "2026-08-25T15:00:00.000Z"
+  },
+  {
+    "id": "task-30",
+    "rank": 30,
+    "task": "ML article",
+    "pri": 45,
+    "time": "3-5h",
+    "description": "ML technical article",
+    "status": "completed",
+    "category": "Writing",
+    "createdAt": "2026-08-25T12:25:00.000Z",
+    "completedAt": "2026-09-21T18:12:33.684Z"
   },
   {
     "id": "task-25",
