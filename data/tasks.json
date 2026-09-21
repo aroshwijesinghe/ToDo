@@ -429,17 +429,6 @@
     "createdAt": "2026-08-25T12:40:00.000Z"
   },
   {
-    "id": "init-10",
-    "rank": 10,
-    "task": "Redis Caching",
-    "pri": 85,
-    "time": "2-3h",
-    "description": "Semantic caching for LLMs, session storage, rate limiting",
-    "status": "todo",
-    "category": "Backend",
-    "createdAt": "2026-08-25T15:00:00.000Z"
-  },
-  {
     "id": "init-11",
     "rank": 11,
     "task": "LangChain / LlamaIndex",
@@ -691,6 +680,18 @@
     "status": "todo",
     "category": "Data Science",
     "createdAt": "2026-08-25T15:00:00.000Z"
+  },
+  {
+    "id": "init-10",
+    "rank": 10,
+    "task": "Redis Caching",
+    "pri": 85,
+    "time": "2-3h",
+    "description": "Semantic caching for LLMs, session storage, rate limiting",
+    "status": "completed",
+    "category": "Backend",
+    "createdAt": "2026-08-25T15:00:00.000Z",
+    "completedAt": "2026-09-21T13:54:52.398Z"
   },
   {
     "id": "init-9",
