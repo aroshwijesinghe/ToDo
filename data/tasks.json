@@ -352,17 +352,6 @@
     "createdAt": "2026-08-25T11:55:00.000Z"
   },
   {
-    "id": "task-25",
-    "rank": 25,
-    "task": "VS Code extension",
-    "pri": 55,
-    "time": "8-15h",
-    "description": "Developer tool",
-    "status": "in-progress",
-    "category": "Projects",
-    "createdAt": "2026-08-25T12:00:00.000Z"
-  },
-  {
     "id": "task-26",
     "rank": 26,
     "task": "Phone + laptop sync app",
@@ -691,6 +680,18 @@
     "status": "todo",
     "category": "Data Science",
     "createdAt": "2026-08-25T15:00:00.000Z"
+  },
+  {
+    "id": "task-25",
+    "rank": 25,
+    "task": "VS Code extension",
+    "pri": 55,
+    "time": "8-15h",
+    "description": "Developer tool",
+    "status": "completed",
+    "category": "Projects",
+    "createdAt": "2026-08-25T12:00:00.000Z",
+    "completedAt": "2026-09-21T16:37:06.206Z"
   },
   {
     "id": "init-10",
