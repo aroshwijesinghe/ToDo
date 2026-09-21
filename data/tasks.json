@@ -1,5 +1,16 @@
 [
   {
+    "id": "task-1789989162152-fp3p",
+    "rank": 84,
+    "task": "add claimiq to cv and remove money balancing app)",
+    "pri": 75,
+    "time": "2-3h",
+    "description": "",
+    "status": "todo",
+    "category": "DevOps",
+    "createdAt": "2026-09-21T11:12:42.152Z"
+  },
+  {
     "id": "task-1789989126440-tzto",
     "rank": 83,
     "task": "claimIQ",
