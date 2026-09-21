@@ -429,17 +429,6 @@
     "createdAt": "2026-08-25T12:40:00.000Z"
   },
   {
-    "id": "init-9",
-    "rank": 9,
-    "task": "PostgreSQL + pgvector",
-    "pri": 86,
-    "time": "2-3h",
-    "description": "Relational data + vector embeddings in one database",
-    "status": "in-progress",
-    "category": "Backend",
-    "createdAt": "2026-08-25T15:00:00.000Z"
-  },
-  {
     "id": "init-10",
     "rank": 10,
     "task": "Redis Caching",
@@ -702,6 +691,18 @@
     "status": "todo",
     "category": "Data Science",
     "createdAt": "2026-08-25T15:00:00.000Z"
+  },
+  {
+    "id": "init-9",
+    "rank": 9,
+    "task": "PostgreSQL + pgvector",
+    "pri": 86,
+    "time": "2-3h",
+    "description": "Relational data + vector embeddings in one database",
+    "status": "completed",
+    "category": "Backend",
+    "createdAt": "2026-08-25T15:00:00.000Z",
+    "completedAt": "2026-09-21T13:53:23.558Z"
   },
   {
     "id": "init-8",
