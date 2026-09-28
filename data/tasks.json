@@ -363,17 +363,6 @@
     "createdAt": "2026-08-25T11:55:00.000Z"
   },
   {
-    "id": "task-26",
-    "rank": 26,
-    "task": "Phone + laptop sync app",
-    "pri": 54,
-    "time": "15-25h",
-    "description": "Cross-device sync",
-    "status": "todo",
-    "category": "Projects",
-    "createdAt": "2026-08-25T12:05:00.000Z"
-  },
-  {
     "id": "task-27",
     "rank": 27,
     "task": "Antigravity skills + publish",
@@ -680,6 +669,18 @@
     "status": "todo",
     "category": "Data Science",
     "createdAt": "2026-08-25T15:00:00.000Z"
+  },
+  {
+    "id": "task-26",
+    "rank": 26,
+    "task": "Phone + laptop sync app",
+    "pri": 54,
+    "time": "15-25h",
+    "description": "Cross-device sync",
+    "status": "completed",
+    "category": "Projects",
+    "createdAt": "2026-08-25T12:05:00.000Z",
+    "completedAt": "2026-09-28T09:17:36.191Z"
   },
   {
     "id": "task-30",
