@@ -572,17 +572,6 @@
     "createdAt": "2026-08-25T15:00:00.000Z"
   },
   {
-    "id": "init-29",
-    "rank": 29,
-    "task": "SQL Advanced",
-    "pri": 68,
-    "time": "2-3h",
-    "description": "Window functions, CTEs, indexing strategies, query execution plans",
-    "status": "todo",
-    "category": "Backend",
-    "createdAt": "2026-08-25T15:00:00.000Z"
-  },
-  {
     "id": "init-30",
     "rank": 30,
     "task": "Testing in Python",
