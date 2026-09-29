@@ -77,17 +77,6 @@
     "createdAt": "2026-09-19T09:21:49.177Z"
   },
   {
-    "id": "task-1789809695295-kzz9",
-    "rank": 79,
-    "task": "ml course andrew",
-    "pri": 80,
-    "time": "10h",
-    "description": "",
-    "status": "in-progress",
-    "category": "DevOps",
-    "createdAt": "2026-09-19T09:21:35.295Z"
-  },
-  {
     "id": "task-1789809642531-kk4f",
     "rank": 78,
     "task": "web socket study",
@@ -669,6 +658,18 @@
     "status": "todo",
     "category": "Data Science",
     "createdAt": "2026-08-25T15:00:00.000Z"
+  },
+  {
+    "id": "task-1789809695295-kzz9",
+    "rank": 79,
+    "task": "ml course andrew",
+    "pri": 80,
+    "time": "10h",
+    "description": "",
+    "status": "completed",
+    "category": "DevOps",
+    "createdAt": "2026-09-19T09:21:35.295Z",
+    "completedAt": "2026-09-29T06:35:47.849Z"
   },
   {
     "id": "task-26",
