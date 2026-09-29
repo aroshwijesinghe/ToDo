@@ -341,17 +341,6 @@
     "createdAt": "2026-08-25T11:50:00.000Z"
   },
   {
-    "id": "task-24",
-    "rank": 24,
-    "task": "OpenCV",
-    "pri": 58,
-    "time": "3-4h",
-    "description": "Computer vision",
-    "status": "todo",
-    "category": "Computer Vision",
-    "createdAt": "2026-08-25T11:55:00.000Z"
-  },
-  {
     "id": "task-27",
     "rank": 27,
     "task": "Antigravity skills + publish",
