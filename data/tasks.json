@@ -88,17 +88,6 @@
     "createdAt": "2026-09-19T09:20:42.531Z"
   },
   {
-    "id": "task-1789538017438-svaq",
-    "rank": 77,
-    "task": "terraform",
-    "pri": 41,
-    "time": "2-3h",
-    "description": "chrome yotube dowloaded video",
-    "status": "todo",
-    "category": "DevOps",
-    "createdAt": "2026-09-16T05:53:37.439Z"
-  },
-  {
     "id": "task-1789446019147-34w6",
     "rank": 76,
     "task": "Andrew Ng's nural network course",
@@ -550,17 +539,6 @@
     "createdAt": "2026-08-25T15:00:00.000Z"
   },
   {
-    "id": "init-27",
-    "rank": 27,
-    "task": "Terraform Basics",
-    "pri": 70,
-    "time": "3-4h",
-    "description": "Infrastructure as Code, state management, cloud provisioning",
-    "status": "todo",
-    "category": "DevOps",
-    "createdAt": "2026-08-25T15:00:00.000Z"
-  },
-  {
     "id": "init-28",
     "rank": 28,
     "task": "Pandas & Polars Mastery",
@@ -625,6 +603,30 @@
     "status": "todo",
     "category": "Data Science",
     "createdAt": "2026-08-25T15:00:00.000Z"
+  },
+  {
+    "id": "task-1789538017438-svaq",
+    "rank": 77,
+    "task": "terraform",
+    "pri": 41,
+    "time": "2-3h",
+    "description": "chrome yotube dowloaded video",
+    "status": "completed",
+    "category": "DevOps",
+    "createdAt": "2026-09-16T05:53:37.439Z",
+    "completedAt": "2026-09-30T09:23:32.519Z"
+  },
+  {
+    "id": "init-27",
+    "rank": 27,
+    "task": "Terraform Basics",
+    "pri": 70,
+    "time": "3-4h",
+    "description": "Infrastructure as Code, state management, cloud provisioning",
+    "status": "completed",
+    "category": "DevOps",
+    "createdAt": "2026-08-25T15:00:00.000Z",
+    "completedAt": "2026-09-30T09:23:30.021Z"
   },
   {
     "id": "task-1789809695295-kzz9",
