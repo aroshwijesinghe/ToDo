@@ -66,17 +66,6 @@
     "createdAt": "2026-09-19T09:23:02.400Z"
   },
   {
-    "id": "task-1789809709177-q1t6",
-    "rank": 80,
-    "task": "andrew ann course",
-    "pri": 79,
-    "time": "10h",
-    "description": "",
-    "status": "todo",
-    "category": "DevOps",
-    "createdAt": "2026-09-19T09:21:49.177Z"
-  },
-  {
     "id": "task-1789809642531-kk4f",
     "rank": 78,
     "task": "web socket study",
@@ -603,6 +592,18 @@
     "status": "todo",
     "category": "Data Science",
     "createdAt": "2026-08-25T15:00:00.000Z"
+  },
+  {
+    "id": "task-1789809709177-q1t6",
+    "rank": 80,
+    "task": "andrew ann course",
+    "pri": 79,
+    "time": "10h",
+    "description": "",
+    "status": "completed",
+    "category": "DevOps",
+    "createdAt": "2026-09-19T09:21:49.177Z",
+    "completedAt": "2026-09-30T09:41:25.043Z"
   },
   {
     "id": "task-1789538017438-svaq",
