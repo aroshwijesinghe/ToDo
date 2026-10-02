@@ -99,17 +99,6 @@
     "createdAt": "2026-09-12T11:01:57.769Z"
   },
   {
-    "id": "task-1789210888986-g0z6",
-    "rank": 74,
-    "task": "complete tummy boy",
-    "pri": 85,
-    "time": "2-3h",
-    "description": "",
-    "status": "todo",
-    "category": "DevOps",
-    "createdAt": "2026-09-12T11:01:28.986Z"
-  },
-  {
     "id": "task-1789208600356-imx1",
     "rank": 73,
     "task": "langchain",
@@ -592,6 +581,18 @@
     "status": "todo",
     "category": "Data Science",
     "createdAt": "2026-08-25T15:00:00.000Z"
+  },
+  {
+    "id": "task-1789210888986-g0z6",
+    "rank": 74,
+    "task": "complete tummy boy",
+    "pri": 85,
+    "time": "2-3h",
+    "description": "",
+    "status": "completed",
+    "category": "DevOps",
+    "createdAt": "2026-09-12T11:01:28.986Z",
+    "completedAt": "2026-10-02T12:12:08.660Z"
   },
   {
     "id": "task-1789809709177-q1t6",
