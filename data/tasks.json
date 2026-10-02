@@ -1,5 +1,16 @@
 [
   {
+    "id": "task-1790943176173-gkwr",
+    "rank": 84,
+    "task": "fine tuning qora -lora",
+    "pri": 75,
+    "time": "2-3h",
+    "description": "",
+    "status": "todo",
+    "category": "DevOps",
+    "createdAt": "2026-10-02T12:12:56.173Z"
+  },
+  {
     "id": "task-1790527078012-2tvq",
     "rank": 86,
     "task": "deep learning begin",
