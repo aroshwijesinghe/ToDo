@@ -1,5 +1,16 @@
 [
   {
+    "id": "task-1795321393638-p6z1",
+    "rank": 1,
+    "task": "add knowledge map by adding all things i learned",
+    "pri": 96,
+    "time": "2-3h",
+    "description": "",
+    "status": "todo",
+    "category": "DevOps",
+    "createdAt": "2026-11-22T04:23:13.638Z"
+  },
+  {
     "id": "task-1791294419538-sps5",
     "rank": 84,
     "task": "ml ops",
