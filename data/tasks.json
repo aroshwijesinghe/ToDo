@@ -1,5 +1,16 @@
 [
   {
+    "id": "task-1795328242789-y0ir",
+    "rank": 88,
+    "task": "architecture",
+    "pri": 75,
+    "time": "2-3h",
+    "description": "",
+    "status": "todo",
+    "category": "DevOps",
+    "createdAt": "2026-11-22T06:17:22.789Z"
+  },
+  {
     "id": "task-1795321393638-p6z1",
     "rank": 1,
     "task": "add knowledge map by adding all things i learned",
