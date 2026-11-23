@@ -132,28 +132,6 @@
     "createdAt": "2026-08-25T10:55:00.000Z"
   },
   {
-    "id": "task-13",
-    "rank": 13,
-    "task": "Decision Tree",
-    "pri": 75,
-    "time": "2-3h",
-    "description": "Rule-based tree",
-    "status": "todo",
-    "category": "Machine Learning",
-    "createdAt": "2026-08-25T11:00:00.000Z"
-  },
-  {
-    "id": "task-14",
-    "rank": 14,
-    "task": "Random Forest",
-    "pri": 74,
-    "time": "2-3h",
-    "description": "Many decision trees",
-    "status": "todo",
-    "category": "Machine Learning",
-    "createdAt": "2026-08-25T11:05:00.000Z"
-  },
-  {
     "id": "task-15",
     "rank": 15,
     "task": "Boosting",
@@ -339,6 +317,30 @@
     "status": "todo",
     "category": "Personal",
     "createdAt": "2026-08-25T12:50:00.000Z"
+  },
+  {
+    "id": "task-13",
+    "rank": 13,
+    "task": "Decision Tree",
+    "pri": 75,
+    "time": "2-3h",
+    "description": "Rule-based tree",
+    "status": "completed",
+    "category": "Machine Learning",
+    "createdAt": "2026-08-25T11:00:00.000Z",
+    "completedAt": "2026-11-23T06:41:26.321Z"
+  },
+  {
+    "id": "task-14",
+    "rank": 14,
+    "task": "Random Forest",
+    "pri": 74,
+    "time": "2-3h",
+    "description": "Many decision trees",
+    "status": "completed",
+    "category": "Machine Learning",
+    "createdAt": "2026-08-25T11:05:00.000Z",
+    "completedAt": "2026-11-23T06:41:25.091Z"
   },
   {
     "id": "task-32",
