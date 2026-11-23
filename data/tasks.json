@@ -44,17 +44,6 @@
     "createdAt": "2026-08-25T10:30:00.000Z"
   },
   {
-    "id": "task-8",
-    "rank": 8,
-    "task": "Tummy Boy V2",
-    "pri": 82,
-    "time": "6-12h",
-    "description": "Add leg + other activities",
-    "status": "todo",
-    "category": "Projects",
-    "createdAt": "2026-08-25T10:35:00.000Z"
-  },
-  {
     "id": "task-9",
     "rank": 9,
     "task": "PyTorch",
@@ -284,6 +273,18 @@
     "status": "todo",
     "category": "Personal",
     "createdAt": "2026-08-25T12:50:00.000Z"
+  },
+  {
+    "id": "task-8",
+    "rank": 8,
+    "task": "Tummy Boy V2",
+    "pri": 82,
+    "time": "6-12h",
+    "description": "Add leg + other activities",
+    "status": "completed",
+    "category": "Projects",
+    "createdAt": "2026-08-25T10:35:00.000Z",
+    "completedAt": "2026-11-23T06:42:00.431Z"
   },
   {
     "id": "task-1",
